@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Daymark Weekly Planner: free time-blocking planner</title>
+<meta name="description" content="A free, simple weekly planner for time blocking. Works in your browser, no sign-up, and your plan stays on your device.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Daymark Weekly Planner">
+<meta property="og:description" content="A free, simple weekly planner for time blocking. No sign-up. Your plan stays on your device.">
+<meta property="og:image" content="https://sidibem79.github.io/daymark-weekly-planner/media/og.jpg">
+<meta property="og:url" content="https://sidibem79.github.io/daymark-weekly-planner/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%234f4ad6'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round'%3E%3Crect x='5' y='6' width='14' height='13' rx='2'/%3E%3Cpath d='M5 10h14M9 4v3M15 4v3M9 14h3'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--ink:#161b26;--ink2:#2d3445;--muted:#5b6375;--line:#e6e8ee;--accent:#4f4ad6;--accent-h:#3f3ac4;--accent-soft:#eeedfd;--accent-ink:#2a2690;
+  --deep:#4b8bd0;--meet:#de8658;--learn:#8667dd;--health:#19a476;--admin:#8698aa;--break:#c99a1a;--rest:#1f9aa8;
+  font-family:Geist,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+img,video{display:block;max-width:100%}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+.wrap{width:min(1120px,100% - 32px);margin-inline:auto}
+
+/* Header */
+header{position:sticky;top:0;z-index:10;background:rgba(244,245,247,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid transparent}
+header.scrolled{border-bottom-color:var(--line)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700;letter-spacing:-.02em}
+.mark{width:32px;height:32px;border-radius:9px;background:var(--accent);display:grid;place-items:center;flex:none}
+.brand small{display:block;font-weight:500;font-size:12px;letter-spacing:0;color:var(--muted);line-height:1.1}
+.brand span{line-height:1.15}
+.bar nav{display:flex;align-items:center;gap:6px}
+.navlink{font-size:15px;font-weight:500;text-decoration:none;color:var(--ink2);padding:8px 10px;border-radius:8px}
+.navlink:hover{background:#e9ebf0}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 22px;border-radius:12px;font-weight:600;font-size:16px;text-decoration:none;border:1px solid transparent;transition:background .15s,box-shadow .15s,transform .15s}
+.btn.primary{background:var(--accent);color:#fff;box-shadow:0 1px 2px rgba(22,27,38,.1),0 6px 18px rgba(79,74,214,.28)}
+.btn.primary:hover{background:var(--accent-h);transform:translateY(-1px)}
+.btn.ghost{background:var(--card);color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{border-color:#cfd3dc}
+.btn.sm{min-height:38px;padding:8px 14px;font-size:15px;border-radius:10px}
+
+/* Hero */
+.hero{padding:56px 0 24px;text-align:center}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 0 22px;padding:0;list-style:none}
+.chips li{font-size:14px;font-weight:500;color:var(--accent-ink);background:var(--accent-soft);border-radius:999px;padding:5px 12px}
+h1{font-size:clamp(38px,6.4vw,64px);line-height:1.04;letter-spacing:-.035em;margin:0 auto 18px;max-width:14ch;font-weight:700}
+h1 em{font-style:normal;color:var(--accent)}
+.lede{font-size:clamp(18px,2.2vw,21px);color:var(--ink2);max-width:36em;margin:0 auto 30px}
+.ctas{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
+.privacy{display:flex;align-items:center;justify-content:center;gap:8px;margin:18px 0 0;font-size:15px;color:var(--muted)}
+.shot{margin:44px auto 0;max-width:1120px;border-radius:16px;overflow:hidden;background:var(--card);border:1px solid var(--line);box-shadow:0 2px 4px rgba(22,27,38,.04),0 24px 60px -12px rgba(22,27,38,.18)}
+.shot img{width:100%;height:auto}
+
+/* Sections */
+section{padding:72px 0}
+.kicker{font-size:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+h2{font-size:clamp(28px,4vw,40px);line-height:1.12;letter-spacing:-.03em;margin:0 0 14px;font-weight:700}
+.intro{color:var(--ink2);max-width:40em;margin:0}
+.center{text-align:center}
+.center .intro{margin-inline:auto}
+
+/* Story */
+.story{display:grid;grid-template-columns:1fr;gap:28px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:clamp(24px,5vw,48px)}
+.story blockquote{margin:0;font-size:clamp(19px,2.4vw,23px);line-height:1.5;letter-spacing:-.01em;color:var(--ink)}
+.story .sig{margin:14px 0 0;font-weight:600;font-size:16px;color:var(--ink2)}
+.story .why{font-size:16px;color:var(--muted);margin:16px 0 0}
+.paper{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:16px;border-radius:14px;background:repeating-linear-gradient(#fff 0 23px,#eef0f4 23px 24px);border:1px solid var(--line);max-width:340px;justify-self:center;width:100%}
+.paper i{display:block;height:22px;border-radius:5px;opacity:.85}
+@media (min-width:820px){.story{grid-template-columns:1.4fr 1fr}}
+
+/* Video */
+.video{margin:32px auto 0;max-width:960px;border-radius:16px;overflow:hidden;background:#000;border:1px solid var(--line);box-shadow:0 24px 60px -16px rgba(22,27,38,.25)}
+.video video{width:100%;aspect-ratio:16/9;height:auto}
+
+/* Steps */
+.steps{display:grid;gap:16px;margin:36px 0 0;padding:0;list-style:none;counter-reset:s}
+.steps li{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;counter-increment:s}
+.steps li::before{content:counter(s);display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent-ink);font-weight:700;margin-bottom:14px}
+.steps h3,.feat h3{margin:0 0 6px;font-size:19px;letter-spacing:-.015em}
+.steps p,.feat p{margin:0;color:var(--muted);font-size:16px}
+@media (min-width:760px){.steps{grid-template-columns:repeat(3,1fr)}}
+
+/* Features */
+.feats{display:grid;gap:14px;margin:36px 0 0}
+.feat{display:flex;gap:14px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+.dot{width:12px;height:12px;border-radius:4px;flex:none;margin-top:7px}
+@media (min-width:640px){.feats{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:980px){.feats{grid-template-columns:repeat(3,1fr)}}
+
+/* Gallery */
+.gallery{display:grid;gap:16px;margin:36px 0 0}
+.gallery figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.gallery figcaption{padding:12px 16px;font-size:15px;color:var(--muted);border-top:1px solid var(--line)}
+@media (min-width:760px){.gallery{grid-template-columns:repeat(3,1fr)}}
+
+/* FAQ */
+.faq{max-width:760px;margin:32px auto 0;display:grid;gap:10px}
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 20px}
+summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 0;font-weight:600;font-size:17px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-size:22px;font-weight:400;color:var(--muted);line-height:1}
+details[open] summary::after{content:"–"}
+details p{margin:0 0 18px;color:var(--ink2)}
+
+/* Final CTA */
+.final{background:var(--ink);color:#fff;border-radius:24px;padding:clamp(32px,6vw,64px) clamp(20px,5vw,48px);text-align:center}
+.final h2{color:#fff}
+.final p{color:#c9cdd8;margin:0 auto 28px;max-width:32em}
+.final .btn.ghost{background:transparent;color:#fff;border-color:#3b4254}
+.final .btn.ghost:hover{border-color:#6b7385}
+
+footer{padding:36px 0 48px;color:var(--muted);font-size:15px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between}
+footer a{color:var(--ink2)}
+
+@media (max-width:560px){
+  .bar nav .navlink{display:none}
+  .hero{padding-top:36px}
+  .ctas .btn{width:100%}
+  section{padding:56px 0}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}}
+</style>
+</head>
+<body>
+
+<header id="top">
+  <div class="wrap bar">
+    <a class="brand" href="#top" aria-label="Daymark Weekly Planner, back to top">
+      <span class="mark"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4M8 14h3"/></svg></span>
+      <span>Daymark<small>Weekly Planner</small></span>
+    </a>
+    <nav aria-label="Main">
+      <a class="navlink" href="#video">Video</a>
+      <a class="navlink" href="#faq">Questions</a>
+      <a class="btn primary sm" href="app/">Open the planner</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <ul class="chips" aria-label="At a glance">
+      <li>Free</li><li>No sign-up</li><li>Works on phone and computer</li>
+    </ul>
+    <h1>Plan your week in <em>time blocks</em>.</h1>
+    <p class="lede">Give every hour a job before the week starts. Daymark is a simple weekly planner for time blocking: drag to add a block, see where your hours go, and copy a good week forward.</p>
+    <div class="ctas">
+      <a class="btn primary" href="app/">Open the planner
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a class="btn ghost" href="app/index.html" download="daymark-weekly-planner.html">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+        Download the file</a>
+    </div>
+    <p class="privacy"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Your plan stays in your browser. Nothing is sent anywhere.</p>
+    <div class="shot"><img src="media/01-week.webp" width="1600" height="900" alt="Daymark Weekly Planner showing a week of colour-coded time blocks: morning runs, deep work, lunch, stand-ups and admin, with a summary of 51 hours planned by category."></div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <div class="story">
+        <div>
+          <p class="kicker">Why I made it</p>
+          <blockquote>I learned time blocking in a time management training and did it by hand every week, on paper. It worked. Then life got busy and I stopped. I built this to make the habit easier to come back to.</blockquote>
+          <p class="sig">— Mahmoudou Sidibe</p>
+          <p class="why">It's free, and you're welcome to use it, share it, or change it to suit you.</p>
+        </div>
+        <div class="paper" aria-hidden="true">
+          <i style="background:var(--health)"></i><i></i><i style="background:var(--health)"></i><i></i><i style="background:var(--health)"></i>
+          <i style="background:var(--deep)"></i><i style="background:var(--deep)"></i><i style="background:var(--deep)"></i><i style="background:var(--deep)"></i><i style="background:var(--deep)"></i>
+          <i style="background:var(--deep)"></i><i style="background:var(--deep)"></i><i style="background:var(--deep)"></i><i style="background:var(--deep)"></i><i style="background:var(--deep)"></i>
+          <i style="background:var(--break)"></i><i style="background:var(--break)"></i><i style="background:var(--break)"></i><i style="background:var(--break)"></i><i style="background:var(--break)"></i>
+          <i style="background:var(--learn)"></i><i style="background:var(--meet)"></i><i style="background:var(--learn)"></i><i style="background:var(--meet)"></i><i style="background:var(--admin)"></i>
+          <i style="background:var(--admin)"></i><i style="background:var(--admin)"></i><i style="background:var(--admin)"></i><i style="background:var(--admin)"></i><i style="background:var(--admin)"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="video" class="center" style="padding-top:0">
+    <div class="wrap">
+      <p class="kicker">See it in one minute</p>
+      <h2>How it works</h2>
+      <div class="video">
+        <video controls preload="none" playsinline poster="media/video-poster.webp" width="1920" height="1080">
+          <source src="media/daymark-explainer.mp4" type="video/mp4">
+          <a href="media/daymark-explainer.mp4">Watch the video</a>
+        </video>
+      </div>
+      <ol class="steps" style="text-align:left">
+        <li><h3>Block your week</h3><p>Click or drag on empty time to add a block. Give it a name and a category, like Deep work or Meetings.</p></li>
+        <li><h3>Adjust as you go</h3><p>Drag blocks to move them, pull the bottom edge to resize, and tick them off when they're done.</p></li>
+        <li><h3>Reuse good weeks</h3><p>Copy this week to next week, or save it as a template you can apply in one click.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="center">
+        <p class="kicker">What's inside</p>
+        <h2>Simple, with the small things done right</h2>
+      </div>
+      <div class="feats">
+        <div class="feat"><span class="dot" style="background:var(--deep)"></span><div><h3>See where your hours go</h3><p>A running total shows your planned hours by category for the week.</p></div></div>
+        <div class="feat"><span class="dot" style="background:var(--meet)"></span><div><h3>Templates</h3><p>Save your ideal week once and start each new week from it.</p></div></div>
+        <div class="feat"><span class="dot" style="background:var(--learn)"></span><div><h3>Undo anything</h3><p>Ctrl+Z and Ctrl+Y work everywhere, so it's safe to experiment.</p></div></div>
+        <div class="feat"><span class="dot" style="background:var(--health)"></span><div><h3>Full day or compact</h3><p>See all 24 hours, or zoom to just the time between your first and last block.</p></div></div>
+        <div class="feat"><span class="dot" style="background:var(--break)"></span><div><h3>Print or save as PDF</h3><p>Export your week to put it on the wall or send it to someone.</p></div></div>
+        <div class="feat"><span class="dot" style="background:var(--rest)"></span><div><h3>Works on your phone</h3><p>Tap a block to edit it. Press and hold to pick it up and move it.</p></div></div>
+      </div>
+      <div class="gallery">
+        <figure><img src="media/10-editor.webp" loading="lazy" width="1600" height="900" alt="The block editor with title, category, days and time fields."><figcaption>Edit a block in one click</figcaption></figure>
+        <figure><img src="media/07-context-menu.webp" loading="lazy" width="1600" height="900" alt="Right-click menu on a block with edit, mark as done, copy and delete."><figcaption>Right-click for quick actions</figcaption></figure>
+        <figure><img src="media/11-templates.webp" loading="lazy" width="1600" height="900" alt="Week templates window listing saved weeks to apply."><figcaption>Start from a saved week</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" style="padding-top:0">
+    <div class="wrap">
+      <div class="center">
+        <p class="kicker">Questions</p>
+        <h2>Good to know</h2>
+      </div>
+      <div class="faq">
+        <details><summary>Is it really free?</summary><p>Yes. No cost, no account, no ads. It's open source under the MIT license.</p></details>
+        <details><summary>Where is my plan saved?</summary><p>Only in the browser you use it in, on your own device. Nothing is sent to me or anyone else. Use <strong>Back up</strong> in the planner now and then to save a copy as a file, and <strong>Restore</strong> to load it on another device.</p></details>
+        <details><summary>Should I open it online or download it?</summary><p>Opening it online is easiest and works on phones. Download the file if you want to use it offline on your computer. The two keep separate plans, so pick one and stick with it, or move between them with Back up and Restore.</p></details>
+        <details><summary>Does it work on my phone?</summary><p>Yes. Swipe to move around the week, tap a block to edit it, and press and hold a block to move it.</p></details>
+        <details><summary>Can I share it with my clients, team or students?</summary><p>Yes, please do. Share the link, or download the file and change it to suit your group. The MIT license allows that, as long as the license note stays in the code.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="final">
+        <h2>Plan next week in ten minutes</h2>
+        <p>Open the planner, load the example week to see how it looks, then make it yours.</p>
+        <div class="ctas">
+          <a class="btn primary" href="app/">Open the planner</a>
+          <a class="btn ghost" href="app/index.html" download="daymark-weekly-planner.html">Download the file</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Daymark Weekly Planner · Made by Mahmoudou Sidibe · Free and open source (MIT)</span>
+    <span><a href="https://github.com/sidibem79/daymark-weekly-planner">Source on GitHub</a></span>
+  </div>
+</footer>
+
+<script>
+(function(){var h=document.querySelector('header');function f(){h.classList.toggle('scrolled',window.scrollY>4);}window.addEventListener('scroll',f,{passive:true});f();})();
+</script>
+</body>
+</html>
