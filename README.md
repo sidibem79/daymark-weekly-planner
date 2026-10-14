@@ -2,7 +2,7 @@
 
 A free, simple weekly planner for time blocking. Give every hour a job, see where your week goes, and copy a good week forward.
 
-**Open it:** https://sidibem79.github.io/daymark-weekly-planner/
+**Open it:** https://www.daymarkweekly.app/
 
 ![A week planned in Daymark](media/01-week.webp)
 
