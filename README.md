@@ -17,6 +17,7 @@ I learned time blocking in a time management training and did it by hand every w
 1. **Block your week.** Click or drag on empty time to add a block, then give it a name and a category.
 2. **Adjust as you go.** Drag blocks to move them, pull the bottom edge to resize, and tick them off when they're done.
 3. **Reuse good weeks.** Copy this week to next week, or save it as a template.
+4. **Send it to your calendar.** Choose **Export → Google Calendar** to save this week as a `.ics` file. In Google Calendar, open **Settings → Import & export** and import it. The same file works in Apple Calendar and Outlook.
 
 On a phone: swipe to move around, tap a block to edit it, and press and hold a block to move it.
 
