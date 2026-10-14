@@ -25,11 +25,21 @@ There's a one-minute walkthrough video on the [website](https://www.daymarkweekl
 
 ## Your data
 
-Everything is saved in your own browser. There's no account and nothing is sent anywhere. Use **Back up** in the planner to save a copy as a file, and **Restore** to load it on another device.
+Your plan is saved in your own browser, with no account or cloud sync. The hosted site uses Google Analytics for visit statistics and Microsoft Clarity for interaction recordings and heatmaps. Planner text is explicitly masked in Clarity, including blocks, categories, templates, and dialogs. No planner content is passed to custom analytics events. Use **Back up** in the planner to save a copy as a file, and **Restore** to load it on another device.
 
 ## Use it offline
 
 The whole planner is one file: [`app/index.html`](app/index.html). Download it and open it in any browser.
+
+## Analytics setup
+
+The hosted site is configured with GA4 Measurement ID `G-5E2LBE1R2H` and Clarity Project ID `yxp6nquhv7`. The GA4 web stream measures pageviews, scrolls, outbound clicks, video engagement, and file downloads; automatic form interactions and site search are disabled.
+
+Set `measurementId` (the GA4 `G-...` Measurement ID) and `clarityProjectId` in the head scripts of **both** `index.html` and `app/index.html`. These are public tracking identifiers, not secrets. Empty IDs leave the corresponding integration disabled.
+
+Analytics loads asynchronously only on HTTPS at `daymarkweekly.app` or `www.daymarkweekly.app`. Local previews, other hosts, and downloaded copies skip analytics. Each page load initializes GA4 once, sending its default pageview, and initializes Clarity once. No custom conversion events are configured.
+
+After deployment, visit the landing page and planner and check GA4 Realtime or Tag Assistant and Clarity's dashboard. Confirm Google Analytics collection requests and Clarity `/collect` requests in browser developer tools, and inspect a planner recording to verify that user text is masked. Vendor dashboard delivery and recording masking must be verified against the configured projects; local checks alone cannot prove them.
 
 ## License
 

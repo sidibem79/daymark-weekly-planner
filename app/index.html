@@ -3,6 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Keep analytics IDs and initialization in sync with ../index.html. -->
+<script>
+(function(){
+  const measurementId = 'G-5E2LBE1R2H'; // Google Analytics Measurement ID
+  const clarityProjectId = 'yxp6nquhv7'; // Microsoft Clarity project ID
+  if (location.protocol !== 'https:' || !['daymarkweekly.app', 'www.daymarkweekly.app'].includes(location.hostname)) return;
+
+  if (/^G-[A-Z0-9]+$/.test(measurementId)) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){ window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', measurementId);
+    const googleTag = document.createElement('script');
+    googleTag.async = true;
+    googleTag.src = 'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
+    document.head.appendChild(googleTag);
+  }
+
+  if (/^[a-z0-9]+$/.test(clarityProjectId)) {
+    window.clarity = window.clarity || function(){ (window.clarity.q = window.clarity.q || []).push(arguments); };
+    const clarityTag = document.createElement('script');
+    clarityTag.async = true;
+    clarityTag.src = 'https://www.clarity.ms/tag/' + clarityProjectId;
+    document.head.appendChild(clarityTag);
+  }
+})();
+</script>
 <title>Daymark Weekly Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -372,7 +399,7 @@ legend{padding:0}
 }
 </style>
 </head>
-<body>
+<body data-clarity-mask="True">
 <div class="app" id="app">
   <aside class="sidebar" id="sidebar" aria-label="Planner navigation">
     <div class="brand">
