@@ -127,18 +127,6 @@ section{padding:120px 0}
 .tour{margin-top:48px;border-radius:18px;overflow:hidden;background:#0b0d22;border:1px solid var(--line);box-shadow:0 50px 100px -40px rgba(18,21,40,.4)}
 .tour video{width:100%;aspect-ratio:16/9}
 
-/* Paper vs Daymark */
-.cmp{margin-top:56px;border-radius:20px;overflow:hidden;border:1px solid rgba(160,165,255,.18)}
-.cmp-row{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid rgba(160,165,255,.14)}
-.cmp-row:first-child{border-top:0}
-.cmp-row > div{padding:20px 24px;font-size:16px}
-.cmp-row > div:first-child{color:#9a9dc2;text-decoration:line-through;text-decoration-color:rgba(222,134,88,.75);text-decoration-thickness:2px}
-.cmp-row > div:last-child{background:rgba(108,102,255,.1);color:#fff;font-weight:500;display:flex;gap:10px;align-items:flex-start}
-.cmp-row.cmp-head > div{font-weight:700;text-decoration:none;font-size:14px;letter-spacing:.02em;color:#c4c6e4;padding-top:14px;padding-bottom:14px}
-.cmp-row.cmp-head > div:last-child{color:#fff}
-.cmp .tick{background:rgba(108,102,255,.25);color:var(--lilac)}
-@media (max-width:640px){.cmp-row > div{padding:16px 14px;font-size:15px}}
-
 /* Note from the maker */
 .note{display:grid;gap:48px;align-items:start}
 .note blockquote{margin:0}
@@ -189,8 +177,6 @@ footer a{color:#c4c6e4}
       <span>Daymark<small>Weekly Planner</small></span>
     </a>
     <nav aria-label="Main">
-      <a class="nl" href="#tour">Tour</a>
-      <a class="nl" href="#questions">Questions</a>
       <a class="btn go" href="app/">Open the planner</a>
     </nav>
   </div>
@@ -221,6 +207,21 @@ footer a{color:#c4c6e4}
       </div>
     </div>
   </div>
+
+  <!-- The one-minute tour -->
+  <section class="cloud" id="tour">
+    <div class="wrap">
+      <span class="kick">See it work</span>
+      <h2>Watch the one-minute tour.</h2>
+
+      <div class="tour">
+        <video controls preload="metadata" playsinline poster="media/video-poster.webp" width="1920" height="1080">
+          <source src="media/daymark-explainer.mp4" type="video/mp4">
+          <a href="media/daymark-explainer.mp4">Watch the video</a>
+        </video>
+      </div>
+    </div>
+  </section>
 
   <!-- EXPLAIN: #5 want this -->
   <section>
@@ -259,40 +260,8 @@ footer a{color:#c4c6e4}
     </div>
   </section>
 
-  <!-- EXPLAIN: #3 understand + #4 believe, with the real product -->
-  <section class="cloud" id="tour">
-    <div class="wrap">
-      <span class="kick">See it work</span>
-      <h2>Watch the one-minute tour.</h2>
-
-      <div class="tour">
-        <video controls preload="metadata" playsinline poster="media/video-poster.webp" width="1920" height="1080">
-          <source src="media/daymark-explainer.mp4" type="video/mp4">
-          <a href="media/daymark-explainer.mp4">Watch the video</a>
-        </video>
-      </div>
-    </div>
-  </section>
-
-  <!-- EXPLAIN: #6 want this from you -->
-  <section class="dark">
-    <div class="wrap">
-      <span class="kick">Coming from paper?</span>
-      <h2>Everything that worked on paper.<br>Without redrawing it every Sunday.</h2>
-      <div class="cmp" role="table" aria-label="Paper planner compared with Daymark">
-        <div class="cmp-row cmp-head" role="row"><div role="columnheader">On paper</div><div role="columnheader">In Daymark</div></div>
-        <div class="cmp-row" role="row"><div role="cell">Redraw the grid every week</div><div role="cell"><span class="tick" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>Copy last week forward in one click</div></div>
-        <div class="cmp-row" role="row"><div role="cell">Erase and rewrite when plans change</div><div role="cell"><span class="tick" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>Drag the block to its new time</div></div>
-        <div class="cmp-row" role="row"><div role="cell">Count the hours by hand</div><div role="cell"><span class="tick" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>Hours added up by category as you plan</div></div>
-        <div class="cmp-row" role="row"><div role="cell">Start your ideal week from scratch</div><div role="cell"><span class="tick" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>Save it as a template and apply it any week</div></div>
-        <div class="cmp-row" role="row"><div role="cell">Mistakes stay on the page</div><div role="cell"><span class="tick" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>Undo anything with Ctrl+Z</div></div>
-        <div class="cmp-row" role="row"><div role="cell">Only where the notebook is</div><div role="cell"><span class="tick" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>On your phone or computer, and printable as a PDF</div></div>
-      </div>
-    </div>
-  </section>
-
   <!-- EXPLAIN: trust cycle, the maker's own words -->
-  <section>
+  <section class="cloud">
     <div class="wrap note">
       <div>
         <span class="kick">Why I made it</span>
@@ -309,7 +278,7 @@ footer a{color:#c4c6e4}
   </section>
 
   <!-- EXCHANGE: #7 will trade -->
-  <section class="cloud" id="questions">
+  <section id="questions">
     <div class="wrap">
       <span class="kick">Before you start</span>
       <h2>Honest answers</h2>
