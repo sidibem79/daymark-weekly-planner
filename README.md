@@ -20,7 +20,7 @@ I learned time blocking in a time management training and did it by hand every w
 
 On a phone: swipe to move around, tap a block to edit it, and press and hold a block to move it.
 
-There's a one-minute walkthrough video on the [website](https://sidibem79.github.io/daymark-weekly-planner/#video).
+There's a one-minute walkthrough video on the [website](https://www.daymarkweekly.app/#video).
 
 ## Your data
 
