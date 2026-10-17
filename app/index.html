@@ -322,7 +322,7 @@ select.input{font-family:var(--mono);font-size:14px;padding:0 12px}
 .editor-dialog .ed-delete{gap:6px;margin-left:-10px;padding:0 10px;border-color:transparent;background:transparent}
 .editor-dialog .ed-delete:hover{background:#fdeef0}
 .editor-dialog .foot-hint:empty{display:none}
-/* The short list a field opens: in the editor's overlay, fixed under (or over) the field. */
+/* The short list a field opens: in the editor's dialog, outside its scrolling body, fixed under (or over) the field. */
 .pick{position:fixed;z-index:2;display:flex;flex-direction:column;max-width:min(320px,calc(100vw - 16px));overflow:auto;padding:4px;background:#fff;border:1px solid #e0e3ea;border-radius:12px;box-shadow:0 16px 40px rgba(22,27,38,.18);overscroll-behavior:contain}
 .pick-opt{display:flex;align-items:center;gap:10px;flex:none;min-height:34px;padding:0 10px;border-radius:8px;font-size:14px;color:var(--ink2);cursor:pointer;white-space:nowrap;font-variant-numeric:tabular-nums}
 .pick-opt:hover{background:#f1f2f5}
@@ -1446,7 +1446,7 @@ $('overlay').addEventListener('click',e=>{if(e.target===$('overlay'))closeEditor
 
 /* ---------- the editor's short lists ---------- */
 // A listbox in a popover under a field, with a select's keyboard (arrows, Home, End, Enter, Escape); the arrows also reach the action under
-// the options, if any. It sits in the editor's overlay rather than the dialog, so the dialog's scrolling body never clips it.
+// the options, if any. It sits in the dialog, so screen readers keep it in the modal, but outside the scrolling body, which never clips it.
 let pickerClose=null, pickerCount=0;
 function closePicker(focusButton=false){if(!pickerClose)return false;pickerClose(focusButton);return true;}
 function picker(button,host,config){
@@ -1489,11 +1489,11 @@ function picker(button,host,config){
     e.preventDefault();focusOption(all[next]);
   });
 }
-picker($('ed-date'),$('overlay'),{label:'Day',options:()=>WD.map((_,i)=>({value:String(i),label:dayLabel(dateFor(i))})),value:()=>String(edDay),choose:v=>{edDay=Number(v);editorDays=editorDays.filter(d=>d!==edDay);renderWhen();updateEditor();}});
+picker($('ed-date'),$('form'),{label:'Day',options:()=>WD.map((_,i)=>({value:String(i),label:dayLabel(dateFor(i))})),value:()=>String(edDay),choose:v=>{edDay=Number(v);editorDays=editorDays.filter(d=>d!==edDay);renderWhen();updateEditor();}});
 // A new start keeps the block's length, cut short at midnight, and never less than one step.
-picker($('ed-start'),$('overlay'),{label:'Starts',options:()=>{const o=[];for(let m=0;m<DAY_MIN;m+=STEP)o.push({value:String(m),label:time(m)});return o;},value:()=>String(edStart),choose:v=>{const next=Number(v);edEnd=Math.max(next+STEP,Math.min(DAY_MIN,next+(edEnd-edStart)));edStart=next;renderWhen();updateEditor();}});
-picker($('ed-end'),$('overlay'),{label:'Ends',options:()=>{const o=[];for(let m=edStart+STEP;m<=DAY_MIN;m+=STEP)o.push({value:String(m),label:time(m),hint:lenLabel(m-edStart)});return o;},value:()=>String(edEnd),choose:v=>{edEnd=Number(v);renderWhen();updateEditor();}});
-picker($('cat-field'),$('overlay'),{label:'Category',options:()=>categories.map(c=>({value:c.id,label:c.name,color:c.color})),value:()=>editorCat,choose:id=>{editorCat=id;renderEditorCats();},footer:{html:ICON_PLUS+'New category',action:()=>openCategoryManager({addNew:true})}});
+picker($('ed-start'),$('form'),{label:'Starts',options:()=>{const o=[];for(let m=0;m<DAY_MIN;m+=STEP)o.push({value:String(m),label:time(m)});return o;},value:()=>String(edStart),choose:v=>{const next=Number(v);edEnd=Math.max(next+STEP,Math.min(DAY_MIN,next+(edEnd-edStart)));edStart=next;renderWhen();updateEditor();}});
+picker($('ed-end'),$('form'),{label:'Ends',options:()=>{const o=[];for(let m=edStart+STEP;m<=DAY_MIN;m+=STEP)o.push({value:String(m),label:time(m),hint:lenLabel(m-edStart)});return o;},value:()=>String(edEnd),choose:v=>{edEnd=Number(v);renderWhen();updateEditor();}});
+picker($('cat-field'),$('form'),{label:'Category',options:()=>categories.map(c=>({value:c.id,label:c.name,color:c.color})),value:()=>editorCat,choose:id=>{editorCat=id;renderEditorCats();},footer:{html:ICON_PLUS+'New category',action:()=>openCategoryManager({addNew:true})}});
 
 /* ---------- category manager ---------- */
 function usage(id){return blocks.filter(b=>b.cat===id).length;}
