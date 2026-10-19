@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <!-- Keep analytics IDs and initialization in sync with ../index.html. -->
 <script>
 (function(){
@@ -393,9 +393,31 @@ select.input{font-family:var(--mono);font-size:14px;padding:0 12px}
 .tpl-row small{display:block;font-size:12px;font-weight:400;color:var(--muted);font-family:var(--mono)}
 /* Selecting several blocks: the box drawn over empty time, and the bar. */
 .box-select{position:fixed;z-index:30;border:1.5px solid var(--accent);border-radius:4px;background:rgba(79,74,214,.10);pointer-events:none}
-.select-bar{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:150;display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:8px;padding:8px 8px 8px 16px;background:#fff;border:1px solid #e0e3ea;border-radius:14px;box-shadow:0 12px 30px rgba(22,27,38,.18);max-width:calc(100vw - 24px)}
+/* Centred by margins, not left:50%, which would leave the bar only half the screen to fit in. */
+.select-bar{position:fixed;left:0;right:0;bottom:calc(24px + var(--toolbar-gap,0px));width:max-content;margin:0 auto;z-index:150;display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:8px;padding:8px 8px 8px 16px;background:#fff;border:1px solid #e0e3ea;border-radius:14px;box-shadow:0 12px 30px rgba(22,27,38,.18);max-width:calc(100vw - 24px)}
+.select-bar .btn svg{display:none}
 .select-count{font-size:13px;font-weight:600;color:var(--ink);margin-right:4px;white-space:nowrap}
-.has-sel .toast{bottom:92px}
+.has-sel .toast{bottom:calc(92px + var(--toolbar-gap,0px))}
+/* The week actions' menu button and the "By category" toggle show only on a phone. */
+#week-menu,.cat-toggle{display:none}
+/* The hint fits the screen: touch or mouse. A touch screen has no use for the shortcuts. */
+.touch-hint{display:none}
+@media (hover:none) and (pointer:coarse){
+  .mouse-hint,.shortcuts{display:none}
+  .touch-hint{display:block}
+}
+/* On a touch screen the block editor and quick add take the focus themselves when they open, so
+   the keyboard waits for a tap on a field; they draw no focus ring. */
+#form:focus,.quick:focus{outline:none}
+/* The menus' category picker by name: on a touch screen, which has no tooltips to name the
+   swatches, and in the selection bar's Category… menu. A long list scrolls. */
+.ctx{max-height:calc(100dvh - 16px);overflow:auto;overscroll-behavior:contain}
+.ctx-cat-list{display:flex;flex-direction:column}
+.ctx .ctx-cat-row{min-height:40px}
+.ctx-cat-row .dot{flex:none;width:10px;height:10px;border-radius:3px;background:var(--c)}
+.ctx-cat-row .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ctx-cat-row .tick{margin-left:auto;color:var(--accent-ink)}
+.ctx-cat-row[aria-checked=true]{font-weight:600;color:var(--ink)}
 
 @media (max-width:1320px){.rail{width:256px}}
 @media (min-width:1101px){.app.sidebar-collapsed .sidebar{display:none}}
@@ -423,7 +445,6 @@ select.input{font-family:var(--mono);font-size:14px;padding:0 12px}
   .tb-left{width:100%}
   .tb-left h1{font-size:17px;margin:0 auto 0 4px}
   .tb-right{width:100%;margin-left:0}
-  .tb-right .menu-wrap{margin-left:auto}
   #range-seg,.export-label,#add{display:none}
   .fab{display:grid}
   .has-sel .fab{display:none}
@@ -433,7 +454,6 @@ select.input{font-family:var(--mono);font-size:14px;padding:0 12px}
   .overlay{padding:0;align-items:flex-end}
   .dialog,.dialog.wide{width:100%;max-height:92dvh;border-radius:20px 20px 0 0}
   .dlg-head{padding:16px 12px 0 16px}.dlg-sub{padding:0 16px}.dlg-body{padding:12px 16px 20px}.dlg-foot{padding:12px 16px calc(12px + env(safe-area-inset-bottom, 0px))}
-  .toast{bottom:96px}
   .cat-row{gap:6px}.cat-row .cat-move{width:26px}
   .cat-row .usage{display:none}
   .editor-dialog .dlg-head{padding:12px 8px 12px 16px}
@@ -441,10 +461,55 @@ select.input{font-family:var(--mono);font-size:14px;padding:0 12px}
   .pick-opt{min-height:42px}
   /* The hint takes its own line above the buttons, so they never wrap. */
   .editor-dialog .dlg-foot .foot-hint{order:-1;flex:1 1 100%;text-align:right}
-  .select-bar{bottom:12px;gap:6px;padding:8px}.select-bar .btn.sm{padding:0 10px}.select-count{width:100%;text-align:center;margin:0}
-  .has-sel .toast{bottom:140px}
+  /* The selection bar docks across the bottom in two rows: the count and Done, then the four
+     actions, each an icon over its label. */
+  .select-bar{left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom, 0px) + var(--toolbar-gap,0px));width:auto;max-width:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch;gap:4px;padding:8px;border-radius:16px}
+  .select-count{grid-column:1 / 4;grid-row:1;align-self:center;margin:0;padding-left:8px}
+  #select-done{grid-column:4;grid-row:1;align-self:center}
+  .select-bar .btn:not(.btn-primary){grid-row:2;flex-direction:column;justify-content:flex-start;gap:4px;height:auto;min-height:56px;padding:6px 2px;border-color:transparent;background:transparent;font-size:12px;line-height:1.2;white-space:normal;text-align:center}
+  .select-bar .btn:not(.btn-primary):hover{background:#f3f4f7}
+  .select-bar .btn-danger:not(:disabled):hover{background:#fdeef0}
+  .select-bar .btn svg{display:block}
+  /* Room to scroll the end of the page above the bar. */
+  .has-sel .main{padding-bottom:calc(128px + env(safe-area-inset-bottom, 0px) + var(--toolbar-gap,0px))}
+  .has-sel .toast{bottom:calc(132px + env(safe-area-inset-bottom, 0px) + var(--toolbar-gap,0px))}
+  /* The cards under the calendar are shorter: the summary's list of categories folds behind
+     "By category", and the week actions open from the top bar's menu (#week-menu); the card keeps
+     only "Copy this week to next week". */
+  #week-menu{display:inline-grid;margin-left:auto;border:1px solid #e0e3ea;background:#fff}
+  #week-menu:hover{background:#f3f4f7}
+  .summary-card{gap:10px;padding:16px}
+  .summary-card .stat b{font-size:28px}
+  .cat-toggle{display:inline-flex;align-items:center;gap:4px;margin:6px 0 0 -8px}
+  .cat-toggle svg{transition:transform .15s}
+  #cat-breakdown.open .cat-toggle svg{transform:rotate(180deg)}
+  #cat-breakdown:not(.open) .cat-stats{display:none}
+  #cat-breakdown .cat-stats{margin-top:4px}
+  .actions-card > :not(#copy-next){display:none}
 }
-@media (prefers-reduced-motion:reduce){.editor-dialog .dlg-head{transition:none}}
+/* Edge to edge (the viewport's viewport-fit=cover). Android browsers draw under the navigation bar
+   once their own bottom bar slides away, and report its height only to a page that opts in. What
+   sits at an edge keeps clear of the system's bars by the safe area insets; what sits at the
+   bottom also rises by --toolbar-gap, where a browser's toolbar covers the page without saying so
+   (listenViewport). */
+body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+@media screen{.topbar{padding-top:calc(14px + env(safe-area-inset-top,0px))}}
+@media screen and (max-width:640px){.topbar{padding-top:calc(10px + env(safe-area-inset-top,0px))}}
+.sidebar{padding-top:calc(20px + env(safe-area-inset-top,0px))}
+.toast{bottom:calc(24px + env(safe-area-inset-bottom,0px) + var(--toolbar-gap,0px))}
+@media (max-width:1100px){.sidebar{padding-left:calc(14px + env(safe-area-inset-left,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}}
+@media (max-width:640px){
+  .main{padding-bottom:calc(env(safe-area-inset-bottom,0px) + var(--toolbar-gap,0px))}
+  .fab{bottom:calc(24px + env(safe-area-inset-bottom,0px) + var(--toolbar-gap,0px))}
+  .toast{bottom:calc(96px + env(safe-area-inset-bottom,0px) + var(--toolbar-gap,0px))}
+  /* A dialog's sheet rises above a browser toolbar over the page. */
+  .overlay{padding-bottom:var(--toolbar-gap,0px)}
+  /* The top bar's first row keeps Today in view; the title is short here (rangeTitle). */
+  .tb-left .icon-btn{width:34px}
+  .tb-left h1{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:16px;margin-left:2px}
+  #today{flex:none;padding:0 10px}
+}
+@media (prefers-reduced-motion:reduce){.editor-dialog .dlg-head,.cat-toggle svg{transition:none}}
 @media print{
   @page{size:landscape;margin:10mm}
   :root{--hour:26px!important}
@@ -525,6 +590,8 @@ select.input{font-family:var(--mono);font-size:14px;padding:0 12px}
           <button type="button" id="range-work" aria-pressed="false" title="From your first block to your last, fitted to the screen  C">Compact</button>
         </div>
         <button class="icon-btn panel-toggle" id="rail-toggle" type="button" aria-controls="rail" aria-expanded="true" aria-label="Hide summary panel"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg></button>
+        <!-- On a phone, the week actions open from here; the card under the calendar keeps one. -->
+        <button class="icon-btn" id="week-menu" type="button" aria-haspopup="menu" aria-label="Week actions"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg></button>
         <div class="menu-wrap">
           <button class="btn" id="export-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="export-menu" aria-label="Export">
             <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg>
@@ -577,6 +644,8 @@ select.input{font-family:var(--mono);font-size:14px;padding:0 12px}
           </div>
           <div id="cat-breakdown">
             <div class="cat-bar" id="cat-bar" aria-hidden="true"></div>
+            <!-- On a phone the list folds away behind this. -->
+            <button class="link-btn cat-toggle" id="cat-toggle" type="button" aria-expanded="false" aria-controls="cat-stats">By category<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
             <ul class="cat-stats" id="cat-stats"></ul>
           </div>
         </section>
@@ -590,7 +659,9 @@ select.input{font-family:var(--mono);font-size:14px;padding:0 12px}
           <button class="action danger" id="clear" type="button"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Clear this week</button>
         </section>
 
-        <p class="rail-hint">Click or drag on empty time to add a block. Click a block to edit it, right-click for more.</p>
+        <!-- A touch screen gets its own hint, and no keyboard and mouse shortcuts. -->
+        <p class="rail-hint mouse-hint">Click or drag on empty time to add a block. Click a block to edit it, right-click for more.</p>
+        <p class="rail-hint touch-hint">Tap empty time to add a block, or a block to edit it. Press and hold a block to move it, or to select several.</p>
         <details class="shortcuts">
           <summary>Keyboard and mouse shortcuts</summary>
           <dl>
@@ -619,8 +690,9 @@ select.input{font-family:var(--mono);font-size:14px;padding:0 12px}
 <button class="fab" id="fab" type="button" aria-label="New block"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
 <input type="file" id="import-file" accept="application/json,.json" hidden>
 
+<!-- On a touch screen the editor takes the focus when it opens (tabindex), so the keyboard waits for a tap on a field. -->
 <div class="overlay" id="overlay">
-  <form class="dialog editor-dialog" id="form" role="dialog" aria-modal="true" aria-labelledby="modal-title" novalidate>
+  <form class="dialog editor-dialog" id="form" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1" novalidate>
     <div class="dlg-head">
       <h2 class="sr-only" id="modal-title">New block</h2>
       <label class="done-tick" id="done-wrap" title="Mark done" hidden><input class="sr-only" type="checkbox" id="task-done" aria-label="Done"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></label>
@@ -687,16 +759,18 @@ select.input{font-family:var(--mono);font-size:14px;padding:0 12px}
   <button type="button" class="x" id="toast-close" aria-label="Dismiss"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
 </div>
 
+<!-- The selection bar. The icons show only on a phone, above each label. -->
 <div class="select-bar" id="select-bar" role="toolbar" aria-label="Selected blocks" hidden>
   <span class="select-count" id="select-count" aria-live="polite"></span>
-  <button type="button" class="btn sm" id="select-day">Move to day…</button>
-  <button type="button" class="btn sm" id="select-cat">Category…</button>
-  <button type="button" class="btn sm btn-danger" id="select-delete">Delete</button>
-  <button type="button" class="btn sm" id="select-more">More…</button>
+  <button type="button" class="btn sm" id="select-day"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4M9 15h6m-2-2 2 2-2 2"/></svg>Move to day…</button>
+  <button type="button" class="btn sm" id="select-cat"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><path d="M7.5 7.5h.01"/></svg>Category…</button>
+  <button type="button" class="btn sm btn-danger" id="select-delete"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Delete</button>
+  <button type="button" class="btn sm" id="select-more"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg>More…</button>
   <button type="button" class="btn sm btn-primary" id="select-done">Done</button>
 </div>
 
-<div class="quick" id="quick" role="dialog" aria-label="Quick add block" hidden>
+<!-- tabindex lets quick add, like the editor, take the focus on a touch screen. -->
+<div class="quick" id="quick" role="dialog" aria-label="Quick add block" tabindex="-1" hidden>
   <div class="quick-time" id="quick-time"></div>
   <label class="sr-only" for="quick-title">Title</label>
   <input class="input" id="quick-title" type="text" maxlength="75" placeholder="What will you work on?" autocomplete="off">
@@ -806,7 +880,17 @@ function fmtDate(d){return d.toLocaleDateString(undefined,{month:'short',day:'nu
 function labelDate(d){return WDL[(d.getDay()+6)%7]+', '+MON[d.getMonth()]+' '+d.getDate();}
 function hrs(mins){const h=Math.round(mins/6)/10;return h%1===0?h.toFixed(0):h.toFixed(1);}
 function durLabel(m){if(m<60)return m+' min';const h=Math.floor(m/60),r=m%60;return r?h+'h '+r+'m':h+'h';}
-function rangeTitle(){const s=weekStart,e=dateFor(6);if(s.getMonth()===e.getMonth())return MONL[s.getMonth()]+' '+s.getDate()+' – '+e.getDate()+', '+e.getFullYear();return MON[s.getMonth()]+' '+s.getDate()+' – '+MON[e.getMonth()]+' '+e.getDate()+', '+e.getFullYear();}
+/* How the last press on the page was made: 'mouse', 'touch' or 'pen'; '' before any. */
+let lastPointer='';
+document.addEventListener('pointerdown',e=>{lastPointer=e.pointerType;},{capture:true,passive:true});
+/* Whether the user is on a touch screen, where focusing a text field opens the on-screen keyboard
+   (and a swatch has no tooltip to name it). Told by the last press, a finger or a pen, rather than
+   by media queries alone: some Samsung phones say they can hover, as a mouse does. */
+function touchScreen(){if(lastPointer!=='')return lastPointer!=='mouse';return matchMedia('(pointer:coarse)').matches;}
+/* A phone's width, where the top bar is two rows and the week's title is short. */
+const phone=matchMedia('(max-width:640px)');
+/* The shown week, e.g. "October 12 – 18, 2026"; with short months on a phone, "Oct 12 – 18, 2026". */
+function rangeTitle(short=false){const s=weekStart,e=dateFor(6);if(s.getMonth()===e.getMonth())return (short?MON:MONL)[s.getMonth()]+' '+s.getDate()+' – '+e.getDate()+', '+e.getFullYear();return MON[s.getMonth()]+' '+s.getDate()+' – '+MON[e.getMonth()]+' '+e.getDate()+', '+e.getFullYear();}
 function isoWeek(d){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y0)/MS+1)/7);}
 function dayList(days){if(days.length===7)return 'every day';const runs=[];let a=days[0],prev=days[0];for(let i=1;i<=days.length;i++){const d=days[i];if(d===prev+1){prev=d;continue;}runs.push(prev-a>=2?WD[a]+'–'+WD[prev]:(prev===a?WD[a]:WD[a]+', '+WD[prev]));a=d;prev=d;}return runs.join(', ');}
 function escapeHtml(str){return String(str).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
@@ -889,7 +973,7 @@ function render(){
   const week=thisWeekBlocks();
   pruneSelection();
   [viewStart,viewEnd]=computeRange(week);
-  $('week-title').textContent=rangeTitle();
+  $('week-title').textContent=rangeTitle(phone.matches);
   document.title='Daymark · '+rangeTitle();
   $('today').disabled=key(weekStart)===key(monday(new Date()));
   $('view-week').setAttribute('aria-pressed',String(!dayMode));
@@ -1149,7 +1233,7 @@ function selectionMenu(x,y){
   ]);
 }
 function dayMenu(x,y){openCtx(x,y,Array.from({length:7},(_,d)=>{const date=dateFor(d);return {label:`${WDL[d]}, ${MON[date.getMonth()]} ${date.getDate()}`,action:()=>moveSelectionToDay(d)};}));}
-function categoryMenu(x,y){const list=selectedBlocks();const cats=new Set(list.map(b=>b.cat));openCtx(x,y,[{cats:{checked:cats.size===1?list[0].cat:null,pick:setCategorySelection}}]);}
+function categoryMenu(x,y){const list=selectedBlocks();const cats=new Set(list.map(b=>b.cat));openCtx(x,y,[{cats:{checked:cats.size===1?list[0].cat:null,pick:setCategorySelection,named:true}}]);}
 /* The selection's menu on one of several selected blocks; on another block, that block's own. */
 function menuFor(b,x,y){if(actsOnSelection(b.id)){selectionMenu(x,y);return;}if(selected.size&&!selected.has(b.id))endSelecting();blockMenu(b,x,y);}
 function renderSelectBar(){
@@ -1185,12 +1269,16 @@ function openQuick(day,start,end){
   let left=r.right+10;if(left+w>innerWidth-8)left=r.left-w-10;let top=clamp(r.top,8,innerHeight-h-8);
   if(left<8){left=clamp(r.left,8,innerWidth-w-8);top=r.bottom+8+h<innerHeight?r.bottom+8:Math.max(8,r.top-h-8);}
   q.style.left=left+'px';q.style.top=top+'px';
-  $('quick-title').focus();
+  // On a touch screen the keyboard waits until the title is tapped.
+  (touchScreen()?q:$('quick-title')).focus({preventScroll:true});
 }
 function closeQuick(){if(!quick&&!draftEl)return;$('quick').hidden=true;if(draftEl){draftEl.remove();draftEl=null;}quick=null;}
+/* Where a quick add chip leaves the focus, the chip itself being redrawn: the title, ready to type
+   into, or on a touch screen the card, so the keyboard stays down. */
+function quickFocus(){(touchScreen()?$('quick'):$('quick-title')).focus({preventScroll:true});}
 function renderQuickCats(){
   const wrap=$('quick-cats');wrap.innerHTML='';
-  categories.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='quick-cat';b.style.setProperty('--c',c.color);b.style.setProperty('--t',tint(c.color,.86));b.setAttribute('aria-pressed',String(!!quick&&quick.cat===c.id));b.innerHTML=`<span class="dot" aria-hidden="true"></span>${escapeHtml(c.name)}`;b.addEventListener('click',()=>{if(!quick)return;quick.cat=c.id;renderQuickCats();$('quick-title').focus();});wrap.appendChild(b);});
+  categories.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='quick-cat';b.style.setProperty('--c',c.color);b.style.setProperty('--t',tint(c.color,.86));b.setAttribute('aria-pressed',String(!!quick&&quick.cat===c.id));b.innerHTML=`<span class="dot" aria-hidden="true"></span>${escapeHtml(c.name)}`;b.addEventListener('click',()=>{if(!quick)return;quick.cat=c.id;renderQuickCats();quickFocus();});wrap.appendChild(b);});
 }
 function saveQuick(){
   if(!quick)return;const title=$('quick-title').value.trim();
@@ -1208,17 +1296,23 @@ $('quick-more').addEventListener('click',()=>{if(!quick)return;const q=quick;con
 const QUICK_DURS=[[30,'30m'],[60,'1h'],[120,'2h'],[180,'3h']];
 function renderQuickDurs(){
   const wrap=$('quick-durs');wrap.innerHTML='';
-  QUICK_DURS.forEach(([m,label])=>{const b=document.createElement('button');b.type='button';b.className='dur-chip';b.textContent=label;b.setAttribute('aria-label',durLabel(m));b.setAttribute('aria-pressed',String(!!quick&&quick.end-quick.start===m));b.addEventListener('click',()=>{if(!quick)return;quick.end=Math.min(DAY_MIN,quick.start+m);updateQuickRange();$('quick-title').focus();});wrap.appendChild(b);});
+  QUICK_DURS.forEach(([m,label])=>{const b=document.createElement('button');b.type='button';b.className='dur-chip';b.textContent=label;b.setAttribute('aria-label',durLabel(m));b.setAttribute('aria-pressed',String(!!quick&&quick.end-quick.start===m));b.addEventListener('click',()=>{if(!quick)return;quick.end=Math.min(DAY_MIN,quick.start+m);updateQuickRange();quickFocus();});wrap.appendChild(b);});
 }
 function updateQuickRange(){if(!quick)return;if(draftEl)placeDraft(draftEl,quick.start,quick.end);$('quick-time').textContent=`${labelDate(dateFor(quick.day))} · ${time(quick.start)}–${time(quick.end)}`;renderQuickDurs();}
+const ICON_TICK='<svg class="tick" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 function openCtx(x,y,items){
   closeQuick();closeExportMenu();hideTip();const m=$('ctx');m.innerHTML='';
   items.forEach(it=>{
     if(it==='sep'){m.appendChild(document.createElement('hr'));return;}
     if(it.cats){
       const lab=document.createElement('div');lab.className='ctx-label';lab.textContent='Category';m.appendChild(lab);
-      const row=document.createElement('div');row.className='ctx-cats';row.setAttribute('role','group');row.setAttribute('aria-label','Category');
-      categories.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='ctx-cat';b.setAttribute('role','menuitemradio');b.setAttribute('aria-checked',String(c.id===it.cats.checked));b.setAttribute('aria-pressed',String(c.id===it.cats.checked));b.setAttribute('aria-label',c.name);b.title=c.name;b.style.setProperty('--c',c.color);b.innerHTML='<span aria-hidden="true"></span>';b.addEventListener('click',()=>{closeCtx();it.cats.pick(c.id);});row.appendChild(b);});
+      // By name when asked for, and on a touch screen, which has no tooltips to name the swatches.
+      const named=it.cats.named||touchScreen();
+      const row=document.createElement('div');row.className=named?'ctx-cat-list':'ctx-cats';row.setAttribute('role','group');row.setAttribute('aria-label','Category');
+      categories.forEach(c=>{const b=document.createElement('button');b.type='button';b.className=named?'item ctx-cat-row':'ctx-cat';b.setAttribute('role','menuitemradio');b.setAttribute('aria-checked',String(c.id===it.cats.checked));b.style.setProperty('--c',c.color);
+        if(named)b.innerHTML=`<span class="dot" aria-hidden="true"></span><span class="nm">${escapeHtml(c.name.trim()||'Untitled')}</span>${c.id===it.cats.checked?ICON_TICK:''}`;
+        else{b.setAttribute('aria-pressed',String(c.id===it.cats.checked));b.setAttribute('aria-label',c.name);b.title=c.name;b.innerHTML='<span aria-hidden="true"></span>';}
+        b.addEventListener('click',()=>{closeCtx();it.cats.pick(c.id);});row.appendChild(b);});
       m.appendChild(row);return;
     }
     const b=document.createElement('button');b.type='button';b.className='item'+(it.danger?' danger':'');b.setAttribute('role','menuitem');b.disabled=!!it.disabled;
@@ -1258,7 +1352,9 @@ function laneMenu(day,start,x,y){
 }
 document.addEventListener('pointerdown',e=>{
   const inLane=!!(e.target.closest&&e.target.closest('.day-lane'));
-  if(ctxOpen&&!e.target.closest('#ctx')){closeCtx();if(inLane)suppressCreate=true;}
+  // A press on the button that opened the menu is left to that button, which closes it.
+  const opener=e.target.closest&&e.target.closest('[aria-haspopup=menu]');
+  if(ctxOpen&&!e.target.closest('#ctx')&&!(opener&&opener===ctxReturn)){closeCtx();if(inLane)suppressCreate=true;}
   if(quick&&!e.target.closest('#quick')){closeQuick();if(inLane)suppressCreate=true;}
 },true);
 $('calendar-scroll').addEventListener('scroll',()=>{closeCtx();hideTip();},{passive:true});
@@ -1382,7 +1478,8 @@ function openEditor(id,preset={}){
   $('done-wrap').hidden=!found;$('task-done').checked=!!(found&&found.done);
   renderEditorCats();renderWhen();updateEditor();
   $('overlay').classList.add('open');
-  setTimeout(()=>$('task-title').focus(),0);
+  // On a touch screen the keyboard waits until a field is tapped; elsewhere, type the title at once.
+  setTimeout(()=>(touchScreen()?$('form'):$('task-title')).focus({preventScroll:true}),0);
 }
 function closeEditor(){closePicker();$('overlay').classList.remove('open');editId=null;if(lastFocus&&document.contains(lastFocus))lastFocus.focus();}
 /* Draws the chosen category everywhere the editor shows it: its field, the header's tint and Done ring, and the block's own day in "Also on". */
@@ -1631,7 +1728,42 @@ function openNav(){$('app').classList.add('nav-open');applyLayout();$('nav-close
 function closeNav(){if(!$('app').classList.contains('nav-open'))return;$('app').classList.remove('nav-open');applyLayout();}
 $('nav-open').addEventListener('click',toggleSidebar);
 $('rail-toggle').addEventListener('click',toggleRail);
-narrowNav.addEventListener('change',()=>{$('app').classList.remove('nav-open');applyLayout();});$('nav-close').addEventListener('click',()=>{closeNav();$('nav-open').focus();});$('scrim').addEventListener('click',closeNav);
+narrowNav.addEventListener('change',()=>{$('app').classList.remove('nav-open');applyLayout();});
+// Only the title changes with a phone's width; a redraw now could pull a dragged block away.
+phone.addEventListener('change',e=>{$('week-title').textContent=rangeTitle(e.matches);});
+// On a phone, the summary's list of categories folds away until asked for.
+$('cat-toggle').addEventListener('click',()=>{const open=$('cat-breakdown').classList.toggle('open');$('cat-toggle').setAttribute('aria-expanded',String(open));});
+/* The top bar's menu of the week actions card's buttons (on a phone), each pressing its button with
+   the focus back on the menu's button, where the templates dialog returns it. Pressed again, it closes. */
+$('week-menu').addEventListener('click',()=>{
+  if(ctxOpen&&ctxReturn===$('week-menu')){closeCtx();return;}
+  const items=[...$('rail').querySelectorAll('.actions-card > *')].map(el=>el instanceof HTMLButtonElement?{label:el.textContent.trim(),danger:el.classList.contains('danger'),disabled:el.disabled,action:()=>{$('week-menu').focus();el.click();}}:'sep');
+  const r=$('week-menu').getBoundingClientRect();openCtx(r.left,r.bottom+6,items);ctxReturn=$('week-menu');
+});
+/* How much of the page the browser's own bottom toolbar covers. Samsung Internet slides its toolbar
+   over the page without moving what is fixed to the bottom, and without saying so in the safe area
+   insets, so the + button, the selection bar, the toast and a dialog's buttons rise by --toolbar-gap
+   instead. It is measured two ways, by the visual viewport and by 100dvh; where the browser keeps
+   fixed elements clear by itself, as Chrome and Safari do, both give 0. More than 120px is the
+   on-screen keyboard, and zoomed in the visible area is smaller by design, so neither moves anything. */
+(function(){
+  const probe=css=>{const el=document.createElement('div');el.setAttribute('aria-hidden','true');el.style.cssText='position:fixed;left:0;top:0;width:0;visibility:hidden;pointer-events:none;'+css;document.body.appendChild(el);return el;};
+  const fixed=probe('bottom:0'),dynamic=probe('height:100dvh');let frame=0;
+  function measure(){
+    frame=0;const vv=window.visualViewport;let gap=0;
+    if(!vv||Math.abs(vv.scale-1)<=.01){
+      const layout=fixed.getBoundingClientRect().height;
+      const gaps=[vv?vv.offsetTop+vv.height:null,dynamic.getBoundingClientRect().height].filter(b=>b!==null).map(b=>layout-b);
+      gap=Math.max(0,...gaps);gap=gap>120?0:Math.round(gap);
+    }
+    document.documentElement.style.setProperty('--toolbar-gap',gap+'px');
+  }
+  const soon=()=>{if(!frame)frame=requestAnimationFrame(measure);};
+  measure();
+  // The toolbar moves as the page scrolls; some browsers say so only by resizing a viewport.
+  addEventListener('scroll',soon,{passive:true});addEventListener('resize',soon);
+  if(window.visualViewport){visualViewport.addEventListener('resize',soon);visualViewport.addEventListener('scroll',soon);}
+})();$('nav-close').addEventListener('click',()=>{closeNav();$('nav-open').focus();});$('scrim').addEventListener('click',closeNav);
 function openExportMenu(){$('export-menu').hidden=false;$('export-btn').setAttribute('aria-expanded','true');$('export-menu').querySelector('button').focus();}
 function closeExportMenu(){$('export-menu').hidden=true;$('export-btn').setAttribute('aria-expanded','false');}
 $('export-btn').addEventListener('click',()=>{$('export-menu').hidden?openExportMenu():closeExportMenu();});
