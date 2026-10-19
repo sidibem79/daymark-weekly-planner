@@ -630,6 +630,7 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
             <button class="btn btn-primary" id="empty-copy" type="button">Copy last week</button>
             <button class="btn" id="empty-template" type="button" hidden>Apply a template</button>
             <button class="btn" id="empty-sample" type="button">Use example week</button>
+            <button class="btn" id="empty-blank" type="button">Start blank</button>
           </div>
         </div>
       </section>
@@ -832,6 +833,7 @@ const storageKey='daymark-planner-v1';
 let blocks=[];
 let categories=[];
 let weekStart=monday(new Date());
+let blankWeek=null; // the week whose "Nothing planned" card "Start blank" put away
 let editId=null;
 let active=null;
 let toastTimer=null;
@@ -991,7 +993,7 @@ function render(){
   renderCalendar(week,perDay,cap);
   renderSummary(week);
   renderSelectBar();
-  $('empty').hidden=week.length>0||printing;
+  $('empty').hidden=week.length>0||printing||blankWeek===key(weekStart);
   $('empty-template').hidden=!templates.length;
   const sk=key(weekStart)+'|'+rangeMode;
   if(sk!==scrollKey&&!printing){scrollKey=sk;scrollToStart();}
@@ -1707,6 +1709,8 @@ $('month-prev').addEventListener('click',()=>{const thu=dateFor(3);goWeek(new Da
 $('month-next').addEventListener('click',()=>{const thu=dateFor(3);goWeek(new Date(thu.getFullYear(),thu.getMonth()+1,4));});
 $('copy').addEventListener('click',copyPrevious);$('empty-copy').addEventListener('click',copyPrevious);
 $('sample').addEventListener('click',loadSample);$('empty-sample').addEventListener('click',loadSample);
+// Start blank: puts the empty week's card away for this week and says how to add a block.
+$('empty-blank').addEventListener('click',()=>{blankWeek=key(weekStart);$('empty').hidden=true;showToast(touchScreen()?'Tap any empty hour to add a block':'Click any empty hour, or drag across hours, to add a block');});
 $('clear').addEventListener('click',()=>{if(!thisWeekBlocks().length){showToast('This week is already empty');return;}replaceWeek([],'Week cleared');});
 $('copy-next').addEventListener('click',()=>{const wk=thisWeekBlocks();if(!wk.length){showToast('This week has no blocks to copy');return;}const snap=snapshot();const nextDates=weekDates().map(k=>offsetKey(k,7));blocks=blocks.filter(b=>!nextDates.includes(b.date)).concat(wk.map(b=>({...b,id:uid(),date:offsetKey(b.date,7)})));save();render();showToast('Copied to the week of '+MON[dateFor(7).getMonth()]+' '+dateFor(7).getDate(),{undo:snap});});
 $('view-week').addEventListener('click',()=>{dayMode=false;save();render();});
