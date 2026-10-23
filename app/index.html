@@ -198,10 +198,14 @@ svg{flex:none}
 .tip-cat i{width:8px;height:8px;border-radius:2px}
 .quick-durs{display:flex;gap:6px}
 .quick-durs .dur-chip{height:30px;padding:0 10px;font-size:12px}
-.empty{position:absolute;left:50%;top:150px;transform:translateX(-50%);z-index:9;width:360px;max-width:calc(100% - 32px);padding:24px;background:var(--surface);border:1px solid var(--field);border-radius:14px;box-shadow:0 16px 40px color-mix(in srgb,var(--ink) 12%,transparent);display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
-.empty-icon{width:44px;height:44px;border-radius:12px;background:var(--accent-soft);display:grid;place-items:center}
-.empty h2{margin:0 0 4px;font-size:16px;font-weight:600}.empty p{margin:0;font-size:13px;color:var(--muted)}
-.empty .row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+/* An empty week: a slim bar above the calendar, never on it, so every hour stays free to draw on; a close button at its end. */
+.empty-bar{position:relative;display:flex;align-items:center;flex-wrap:wrap;gap:10px 16px;padding:10px 60px 10px 24px;background:var(--accent-soft);border-bottom:1px solid var(--accent-line);color:var(--ink);font-size:13px;line-height:1.4}
+.empty-bar[hidden]{display:none}
+.empty-text{flex:1 1 260px}
+.empty-actions{display:flex;gap:8px;flex-wrap:wrap}
+.empty-dismiss{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.empty-dismiss:hover{color:var(--ink)}
+@media (max-width:640px){.empty-bar{padding:8px 48px 8px 12px}.empty-dismiss{right:6px;top:6px;transform:none}}
 
 /* Right rail */
 .rail{width:288px;flex:none;display:flex;flex-direction:column;gap:16px;overflow:auto;min-height:0}
@@ -447,7 +451,8 @@ html.touch .touch-hint{display:block}
   .main{height:auto;min-height:100vh}
   .content{flex-direction:column;padding:12px}
   .cal-card{flex:none}
-  .cal-scroll{flex:none;height:calc(100dvh - 190px);min-height:420px}
+  /* Less the empty week's bar while it shows (--empty-bar-height, set by renderEmptyBar), so the calendar still ends at the screen's bottom. */
+  .cal-scroll{flex:none;height:calc(100dvh - 190px - var(--empty-bar-height,0px));min-height:calc(420px - var(--empty-bar-height,0px))}
   .rail{width:auto;overflow:visible}
   .details{position:fixed;left:0;right:0;bottom:0;z-index:100;border-radius:20px 20px 0 0;box-shadow:0 -12px 40px color-mix(in srgb,var(--ink) 18%,transparent);padding:20px 20px 24px;max-height:70dvh;overflow:auto}
 }
@@ -464,7 +469,7 @@ html.touch .touch-hint{display:block}
   /* Day view: the day strip names the day, so the calendar's weekday header would repeat it. */
   .cal-inner.single .weekdays{display:none}
   .content{padding:10px}
-  .cal-scroll{height:calc(100dvh - 240px)}
+  .cal-scroll{height:calc(100dvh - 240px - var(--empty-bar-height,0px))}
   .overlay{padding:0;align-items:flex-end}
   .dialog,.dialog.wide{width:100%;max-height:92dvh;border-radius:20px 20px 0 0}
   .dlg-head{padding:16px 12px 0 16px}.dlg-sub{padding:0 16px}.dlg-body{padding:12px 16px 20px}.dlg-foot{padding:12px 16px calc(12px + env(safe-area-inset-bottom, 0px))}
@@ -528,7 +533,7 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
   @page{size:landscape;margin:10mm}
   :root{--hour:26px!important}
   html,body{background:#fff}
-  .sidebar,.scrim,.tb-right,.tb-left button,.daystrip,.rail,.toast,.fab,.overlay,.ghost,.now-line,.empty,.draft,.quick,.ctx,.done-btn,.now-pill,.tip,.select-bar,.box-select{display:none!important}
+  .sidebar,.scrim,.tb-right,.tb-left button,.daystrip,.rail,.toast,.fab,.overlay,.ghost,.now-line,.empty-bar,.draft,.quick,.ctx,.done-btn,.now-pill,.tip,.select-bar,.box-select{display:none!important}
   .app,.main{display:block;height:auto;min-height:0}
   .topbar{border:0;padding:0 0 8px}
   .content{display:block;padding:0}
@@ -646,6 +651,17 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
       </div>
     </header>
 
+    <!-- An empty week: how to add a block and the best way to fill it, above the calendar so every hour stays free to draw on. -->
+    <div class="empty-bar" id="empty-bar" role="status" hidden>
+      <span class="empty-text"><strong>Nothing planned this week.</strong> <span id="empty-hint">Click or drag on any empty hour to add a block.</span></span>
+      <span class="empty-actions">
+        <button class="btn btn-primary" id="empty-main" type="button">Add your first block</button>
+        <button class="btn" id="empty-template" type="button" hidden>Apply a template</button>
+        <button class="btn" id="empty-sample" type="button" hidden>Use example week</button>
+      </span>
+      <button class="icon-btn sm empty-dismiss" id="empty-dismiss" type="button" aria-label="Dismiss" title="Dismiss"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+
     <div class="daystrip" id="daystrip" role="group" aria-label="Choose a day" hidden></div>
 
     <div class="content">
@@ -654,16 +670,6 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
           <div class="cal-inner" id="calendar-inner">
             <div class="weekdays" id="weekdays"></div>
             <div class="cal-body"><div class="ruler" id="ruler" aria-hidden="true"></div><div class="lanes" id="lanes"></div></div>
-          </div>
-        </div>
-        <div class="empty" id="empty" hidden>
-          <div class="empty-icon"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div>
-          <div><h2>Nothing planned this week</h2><p>Start from last week's blocks, or click any empty hour to add one.</p></div>
-          <div class="row">
-            <button class="btn btn-primary" id="empty-copy" type="button">Copy last week</button>
-            <button class="btn" id="empty-template" type="button" hidden>Apply a template</button>
-            <button class="btn" id="empty-sample" type="button">Use example week</button>
-            <button class="btn" id="empty-blank" type="button">Start blank</button>
           </div>
         </div>
       </section>
@@ -866,7 +872,8 @@ const storageKey='daymark-planner-v1';
 let blocks=[];
 let categories=[];
 let weekStart=monday(new Date());
-let blankWeek=null; // the week whose "Nothing planned" card "Start blank" put away
+let blankWeek=null; // the week whose "Nothing planned" bar was dismissed
+let emptyMain='add'; // what the empty week's filled button does: 'copy', 'template' or 'add'
 let editId=null;
 let active=null;
 let toastTimer=null;
@@ -1031,6 +1038,8 @@ function render(){
   const cap=Math.max(540,...perDay);
   // The day strip and the header first, so fitHours measures the room and the header this render
   // shows; then the hour's height, which renderCalendar's blocks read (hourPx) for their looks.
+  // The empty week's bar above the calendar too, so the room fitHours measures is this render's.
+  renderEmptyBar(week);
   renderDayStrip(perDay,cap);
   renderCalendarHead();
   fitHours();
@@ -1041,11 +1050,28 @@ function render(){
   renderCalendar(week,perDay,cap);
   renderSummary(week);
   renderSelectBar();
-  $('empty').hidden=week.length>0||printing||blankWeek===key(weekStart);
-  $('empty-template').hidden=!templates.length;
   const sk=key(weekStart)+'|'+rangeMode;
   if(sk!==scrollKey&&!printing){scrollKey=sk;scrollToStart();}
 }
+/* The empty week's bar: one filled button, the best way to fill the week: last week's blocks (with templates beside them, if any), else a template, else a first block. Only a true first run, with no blocks in any week, also offers the example week. */
+function emptyOffer(){const dates=weekDates();const prev=blocks.filter(b=>dates.includes(offsetKey(b.date,7))).length;if(prev)return {main:'copy',label:`Copy last week (${prev} block${prev===1?'':'s'})`,template:templates.length>0};if(templates.length)return {main:'template',label:'Apply a template',template:false};return {main:'add',label:'Add your first block',template:false};}
+// Only what changed: the bar is a live region, and a screen reader reads out each change.
+function setText(el,text){if(el.textContent!==text)el.textContent=text;}
+function renderEmptyBar(week){
+  const show=!week.length&&!printing&&blankWeek!==key(weekStart);
+  $('empty-bar').hidden=!show;
+  if(!show){measureEmptyBar();return;}
+  const o=emptyOffer();emptyMain=o.main;
+  setText($('empty-hint'),matchMedia('(pointer: coarse)').matches?'Tap any empty hour to add a block.':'Click or drag on any empty hour to add a block.');
+  setText($('empty-main'),o.label);
+  $('empty-template').hidden=!o.template;
+  $('empty-sample').hidden=blocks.length>0;
+  measureEmptyBar();
+}
+/* The bar's height while it shows, for the tablet and phone calendar heights (.cal-scroll); gone while it is hidden. */
+function measureEmptyBar(){const bar=$('empty-bar');const root=document.documentElement;if(bar.hidden)root.style.removeProperty('--empty-bar-height');else root.style.setProperty('--empty-bar-height',bar.offsetHeight+'px');}
+/* Where "Add your first block" opens the editor: the day shown in Day view, else today when it is in the shown week, else Monday; at the next whole hour when that day is today (no earlier than 7 AM, no later than 10 PM), else 9:00. */
+function firstBlockAt(now=new Date()){const today=(now.getDay()+6)%7;const todayShown=key(now)===key(dateFor(today));const day=dayMode?focusDay:(todayShown?today:0);if(!todayShown||day!==today)return {day,start:540};return {day,start:clamp((now.getHours()+1)*60,WORK_START,DAY_MIN-120)};}
 function renderMonth(){
   const thu=dateFor(3);const m=thu.getMonth(),y=thu.getFullYear();
   $('month-label').textContent=MONL[m]+' '+y;
@@ -1417,7 +1443,7 @@ document.addEventListener('pointerdown',e=>{
 },true);
 $('calendar-scroll').addEventListener('scroll',()=>{closeCtx();hideTip();},{passive:true});
 let resizeTimer=null;
-window.addEventListener('resize',()=>{closeCtx();if(rangeMode==='work'&&!quick&&!active&&!creating&&!boxing){clearTimeout(resizeTimer);resizeTimer=setTimeout(render,150);}});
+window.addEventListener('resize',()=>{closeCtx();measureEmptyBar();if(rangeMode==='work'&&!quick&&!active&&!creating&&!boxing){clearTimeout(resizeTimer);resizeTimer=setTimeout(render,150);}});
 
 /* ---------- week templates ---------- */
 function openTemplates(){closeExportMenu();lastFocus=document.activeElement;$('template-name').value='';$('template-hint').textContent='';renderTemplates();$('template-overlay').classList.add('open');setTimeout(()=>$('template-name').focus(),0);}
@@ -1764,10 +1790,11 @@ $('next').addEventListener('click',()=>stepView(1));
 $('today').addEventListener('click',goToday);
 $('month-prev').addEventListener('click',()=>{const thu=dateFor(3);goWeek(new Date(thu.getFullYear(),thu.getMonth()-1,4));});
 $('month-next').addEventListener('click',()=>{const thu=dateFor(3);goWeek(new Date(thu.getFullYear(),thu.getMonth()+1,4));});
-$('copy').addEventListener('click',copyPrevious);$('empty-copy').addEventListener('click',copyPrevious);
+$('copy').addEventListener('click',copyPrevious);
 $('sample').addEventListener('click',loadSample);$('empty-sample').addEventListener('click',loadSample);
-// Start blank: puts the empty week's card away for this week and says how to add a block.
-$('empty-blank').addEventListener('click',()=>{blankWeek=key(weekStart);$('empty').hidden=true;showToast(touchScreen()?'Tap any empty hour to add a block':'Click any empty hour, or drag across hours, to add a block');});
+// The empty week's bar: its filled button, and Dismiss, which puts it away for this week only (redrawn, so Compact fills the room it leaves).
+$('empty-main').addEventListener('click',()=>{if(emptyMain==='copy')copyPrevious();else if(emptyMain==='template')openTemplates();else openEditor(null,firstBlockAt());});
+$('empty-dismiss').addEventListener('click',()=>{blankWeek=key(weekStart);render();});
 $('clear').addEventListener('click',()=>{if(!thisWeekBlocks().length){showToast('This week is already empty');return;}replaceWeek([],'Week cleared');});
 $('copy-next').addEventListener('click',()=>{const wk=thisWeekBlocks();if(!wk.length){showToast('This week has no blocks to copy');return;}const snap=snapshot();const nextDates=weekDates().map(k=>offsetKey(k,7));blocks=blocks.filter(b=>!nextDates.includes(b.date)).concat(wk.map(b=>({...b,id:uid(),date:offsetKey(b.date,7)})));save();render();showToast('Copied to the week of '+MON[dateFor(7).getMonth()]+' '+dateFor(7).getDate(),{undo:snap});});
 $('view-week').addEventListener('click',()=>{dayMode=false;save();render();});
