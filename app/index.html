@@ -1037,6 +1037,8 @@ function render(){
   const cap=Math.max(540,...perDay);
   // The day strip and the header first, so fitHours measures the room and the header this render
   // shows; then the hour's height, which renderCalendar's blocks read (hourPx) for their looks.
+  // The empty week's bar above the calendar too, so the room fitHours measures is this render's.
+  renderEmptyBar(week);
   renderDayStrip(perDay,cap);
   renderCalendarHead();
   fitHours();
@@ -1047,7 +1049,6 @@ function render(){
   renderCalendar(week,perDay,cap);
   renderSummary(week);
   renderSelectBar();
-  renderEmptyBar(week);
   const sk=key(weekStart)+'|'+rangeMode;
   if(sk!==scrollKey&&!printing){scrollKey=sk;scrollToStart();}
 }
@@ -1786,9 +1787,9 @@ $('month-prev').addEventListener('click',()=>{const thu=dateFor(3);goWeek(new Da
 $('month-next').addEventListener('click',()=>{const thu=dateFor(3);goWeek(new Date(thu.getFullYear(),thu.getMonth()+1,4));});
 $('copy').addEventListener('click',copyPrevious);
 $('sample').addEventListener('click',loadSample);$('empty-sample').addEventListener('click',loadSample);
-// The empty week's bar: its filled button, and Dismiss, which puts it away for this week only.
+// The empty week's bar: its filled button, and Dismiss, which puts it away for this week only (redrawn, so Compact fills the room it leaves).
 $('empty-main').addEventListener('click',()=>{if(emptyMain==='copy')copyPrevious();else if(emptyMain==='template')openTemplates();else openEditor(null,firstBlockAt());});
-$('empty-dismiss').addEventListener('click',()=>{blankWeek=key(weekStart);$('empty-bar').hidden=true;});
+$('empty-dismiss').addEventListener('click',()=>{blankWeek=key(weekStart);render();});
 $('clear').addEventListener('click',()=>{if(!thisWeekBlocks().length){showToast('This week is already empty');return;}replaceWeek([],'Week cleared');});
 $('copy-next').addEventListener('click',()=>{const wk=thisWeekBlocks();if(!wk.length){showToast('This week has no blocks to copy');return;}const snap=snapshot();const nextDates=weekDates().map(k=>offsetKey(k,7));blocks=blocks.filter(b=>!nextDates.includes(b.date)).concat(wk.map(b=>({...b,id:uid(),date:offsetKey(b.date,7)})));save();render();showToast('Copied to the week of '+MON[dateFor(7).getMonth()]+' '+dateFor(7).getDate(),{undo:snap});});
 $('view-week').addEventListener('click',()=>{dayMode=false;save();render();});
