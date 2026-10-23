@@ -576,9 +576,34 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
 .ed-also-day[aria-pressed=true]{font-weight:700;text-decoration:underline;text-underline-offset:3px}
 .done-tick:has(input:focus-visible){outline:2px solid var(--focus);outline-offset:3px}
 .ed-title:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+/* The keyboard: skip links first on the page, shown when they have the focus; the calendar's focus
+   ring on its card, where nothing in it covers the ring; the shortcuts panel's switch for single keys. */
+.skip-link{position:fixed;left:12px;top:-60px;z-index:1000;padding:10px 14px;border-radius:8px;background:var(--surface);color:var(--accent-ink);font-weight:600;text-decoration:underline;text-underline-offset:3px;box-shadow:0 4px 16px color-mix(in srgb,var(--ink) 18%,transparent)}
+.skip-link:focus{top:12px;outline:2px solid var(--focus);outline-offset:2px}
+.cal-scroll:focus{outline:none}
+.cal-card:has(.cal-scroll:focus-visible){outline:2px solid var(--focus);outline-offset:2px}
+.summary-card:focus{outline:none}
+.summary-card:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.key-switch{display:flex;align-items:center;gap:10px;margin:8px 6px 0;font-size:12px;font-weight:500;color:var(--ink2);cursor:pointer}
+.key-switch input{appearance:none;-webkit-appearance:none;flex:none;position:relative;width:32px;height:18px;margin:0;border:1.5px solid var(--muted);border-radius:9px;background:var(--surface);cursor:pointer;transition:background-color .15s,border-color .15s}
+.key-switch input::before{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:var(--muted);transition:transform .15s}
+.key-switch input:checked{border-color:var(--accent);background:var(--accent)}
+.key-switch input:checked::before{transform:translateX(14px);background:var(--on-accent)}
+.key-switch input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.key-switch .key-state{margin-left:auto;color:var(--muted)}
+.key-switch .key-state::after{content:"Off"}
+.key-switch input:checked ~ .key-state::after{content:"On"}
+.keys-hint{margin:6px 6px 0;font-size:12px;line-height:1.45;color:var(--muted)}
+.keys-head{margin:14px 6px 0;font-size:12px;font-weight:600;color:var(--ink2)}
+@media (prefers-reduced-motion:reduce){.key-switch input,.key-switch input::before{transition:none}}
 </style>
 </head>
 <body data-clarity-mask="True">
+<!-- Skip links, first on the page, shown when they have the focus. -->
+<div class="skip-links">
+  <a class="skip-link" id="skip-calendar" href="#calendar-scroll">Skip to calendar</a>
+  <a class="skip-link" id="skip-summary" href="#summary-card">Skip to week summary</a>
+</div>
 <div class="app" id="app">
   <aside class="sidebar" id="sidebar" aria-label="Planner navigation">
     <div class="brand">
@@ -677,7 +702,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
 
     <div class="content">
       <section class="cal-card" id="cal-card" aria-label="Calendar">
-        <div class="cal-scroll" id="calendar-scroll">
+        <div class="cal-scroll" id="calendar-scroll" tabindex="-1" role="group" aria-label="Calendar">
           <div class="cal-inner" id="calendar-inner">
             <div class="weekdays" id="weekdays"></div>
             <div class="cal-body"><div class="ruler" id="ruler" aria-hidden="true"></div><div class="lanes" id="lanes"></div></div>
@@ -686,7 +711,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
       </section>
 
       <div class="rail" id="rail">
-        <section class="card summary-card" aria-labelledby="sum-title">
+        <section class="card summary-card" id="summary-card" tabindex="-1" aria-labelledby="sum-title">
           <h2 class="card-title" id="sum-title">This week</h2>
           <div>
             <div class="stat"><b id="hours-total">0</b><span>hours planned</span></div>
@@ -714,22 +739,40 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
         <p class="rail-hint touch-hint">Tap empty time to add a block, or a block to edit it. Press and hold a block to move it, or to select several.</p>
         <details class="shortcuts">
           <summary>Keyboard and mouse shortcuts</summary>
+          <!-- Single keys only while the calendar has the focus, and a switch for them. -->
+          <label class="key-switch"><input type="checkbox" role="switch" id="single-keys" checked aria-describedby="single-keys-hint"><span>Single-key shortcuts</span><span class="key-state" aria-hidden="true"></span></label>
+          <p class="keys-hint" id="single-keys-hint">N, T, W, D, C, X, [ and ] work while the calendar has the focus: click empty time, or Tab to it.</p>
           <dl>
             <dt><kbd class="k">N</kbd></dt><dd>New block</dd>
             <dt>Drag empty time</dt><dd>Draw a block's start and end</dd>
             <dt><kbd class="k">Alt</kbd> + drag</dt><dd>Duplicate a block</dd>
             <dt><kbd class="k">Ctrl</kbd>+<kbd class="k">C</kbd> <kbd class="k">X</kbd> <kbd class="k">V</kbd></dt><dd>Copy, cut, paste where you point</dd>
-            <dt><kbd class="k">X</kbd></dt><dd>Mark the block you point at as done</dd>
+            <dt><kbd class="k">X</kbd></dt><dd>Mark the focused block, or the one you point at, as done</dd>
             <dt>Right-click</dt><dd>More actions, change category</dd>
             <dt><kbd class="k">Ctrl</kbd>+click, <kbd class="k">Shift</kbd>+click</dt><dd>Select several blocks, or a run of them</dd>
             <dt>Drag across days</dt><dd>Select the blocks in a box</dd>
-            <dt><kbd class="k">Del</kbd> <kbd class="k">↑</kbd> <kbd class="k">↓</kbd> <kbd class="k">←</kbd> <kbd class="k">→</kbd></dt><dd>Delete or move what's selected</dd>
             <dt><kbd class="k">Ctrl</kbd>+<kbd class="k">Z</kbd> <kbd class="k">Y</kbd></dt><dd>Undo, redo</dd>
             <dt><kbd class="k">T</kbd></dt><dd>Go to today</dd>
-            <dt><kbd class="k">←</kbd> <kbd class="k">→</kbd></dt><dd>Previous, next</dd>
             <dt><kbd class="k">W</kbd> <kbd class="k">D</kbd></dt><dd>Week or day view</dd>
             <dt><kbd class="k">C</kbd></dt><dd>Switch between 24h and compact</dd>
             <dt><kbd class="k">[</kbd> <kbd class="k">]</kbd></dt><dd>Hide or show side panels</dd>
+          </dl>
+          <p class="keys-head">On a block</p>
+          <dl>
+            <dt><kbd class="k">↑</kbd> <kbd class="k">↓</kbd></dt><dd>Previous, next block that day</dd>
+            <dt><kbd class="k">←</kbd> <kbd class="k">→</kbd></dt><dd>Nearest block on the day before, after</dd>
+            <dt><kbd class="k">Home</kbd> <kbd class="k">End</kbd></dt><dd>First, last block of the day</dd>
+            <dt><kbd class="k">Enter</kbd></dt><dd>Edit the block</dd>
+            <dt><kbd class="k">Space</kbd></dt><dd>Select or unselect the block</dd>
+            <dt><kbd class="k">Alt</kbd> + <kbd class="k">↑</kbd> <kbd class="k">↓</kbd> <kbd class="k">←</kbd> <kbd class="k">→</kbd></dt><dd>Move the block, or the selection it's in, by half an hour or a day</dd>
+            <dt><kbd class="k">Del</kbd></dt><dd>Delete the block, or the selection it's in</dd>
+            <dt><kbd class="k">Esc</kbd></dt><dd>Clear the selection</dd>
+          </dl>
+          <p class="keys-head">Anywhere else</p>
+          <dl>
+            <dt><kbd class="k">←</kbd> <kbd class="k">→</kbd></dt><dd>Previous, next day or week</dd>
+            <dt><kbd class="k">PgUp</kbd> <kbd class="k">PgDn</kbd></dt><dd>The same, on the calendar or a block</dd>
+            <dt><kbd class="k">Del</kbd> <kbd class="k">↑</kbd> <kbd class="k">↓</kbd> <kbd class="k">←</kbd> <kbd class="k">→</kbd></dt><dd>With several selected: delete or move them</dd>
           </dl>
         </details>
       </div>
@@ -904,6 +947,11 @@ let lastFocus=null;
 let lastTap={id:null,t:0};
 let lastPointerUp=0;
 let railCollapsed=false;
+// Whether N, T, W, D, C, X, [ and ] act while the calendar has the focus: the shortcuts panel's switch.
+let singleKeys=true;
+// The block the keyboard was last on (the calendar's one Tab stop), and where it was, so the nearest
+// one on its day takes its place once it is gone; wantsBlock: the calendar took the focus for want of one.
+let focusId=null, focusAt=null, wantsBlock=false;
 const narrowNav=matchMedia('(max-width:1100px)');
 let templates=[];
 let scrollKey='';
@@ -972,8 +1020,8 @@ function normalizeTemplates(list){return (Array.isArray(list)?list:[]).map(t=>{i
 
 /* ---------- storage ---------- */
 function setSaveStatus(ok){$('save-card').classList.toggle('failed',!ok);$('save-status').textContent=ok?'Saved in this browser':'Not saved in this browser';$('save-note').textContent=ok?'Back up to a file to move your planner to another device.':'Browser storage is blocked here. Use Back up to keep your changes.';}
-function save(){try{localStorage.setItem(storageKey,JSON.stringify({version:4,selectedWeek:key(weekStart),sidebarCollapsed,railCollapsed,dayMode,hours:rangeMode,catsV2:true,hiddenCats:[...hiddenCats],templates,categories,blocks}));setSaveStatus(true);return true;}catch(e){setSaveStatus(false);return false;}}
-function bootstrap(){try{const raw=localStorage.getItem(storageKey);if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed)){categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=normalizeBlocks(parsed);}else{categories=normalizeCategories(parsed.categories);blocks=normalizeBlocks(parsed.blocks);if(parsed.selectedWeek)weekStart=monday(fromKey(parsed.selectedWeek));sidebarCollapsed=!!parsed.sidebarCollapsed;railCollapsed=!!parsed.railCollapsed;templates=normalizeTemplates(parsed.templates);dayMode=typeof parsed.dayMode==='boolean'?parsed.dayMode:dayMode;if(parsed.hours==='full'||parsed.hours==='work')rangeMode=parsed.hours;if(Array.isArray(parsed.hiddenCats)){const ids=categoryIds();hiddenCats=new Set(parsed.hiddenCats.filter(id=>ids.has(id)));}if(!parsed.catsV2)migrateCategories();}}else{categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=sampleWeek();}}catch(e){categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=sampleWeek();}save();}
+function save(){try{localStorage.setItem(storageKey,JSON.stringify({version:4,selectedWeek:key(weekStart),sidebarCollapsed,railCollapsed,dayMode,hours:rangeMode,catsV2:true,hiddenCats:[...hiddenCats],singleKeys,templates,categories,blocks}));setSaveStatus(true);return true;}catch(e){setSaveStatus(false);return false;}}
+function bootstrap(){try{const raw=localStorage.getItem(storageKey);if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed)){categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=normalizeBlocks(parsed);}else{categories=normalizeCategories(parsed.categories);blocks=normalizeBlocks(parsed.blocks);if(parsed.selectedWeek)weekStart=monday(fromKey(parsed.selectedWeek));sidebarCollapsed=!!parsed.sidebarCollapsed;railCollapsed=!!parsed.railCollapsed;templates=normalizeTemplates(parsed.templates);dayMode=typeof parsed.dayMode==='boolean'?parsed.dayMode:dayMode;if(parsed.hours==='full'||parsed.hours==='work')rangeMode=parsed.hours;if(typeof parsed.singleKeys==='boolean')singleKeys=parsed.singleKeys;if(Array.isArray(parsed.hiddenCats)){const ids=categoryIds();hiddenCats=new Set(parsed.hiddenCats.filter(id=>ids.has(id)));}if(!parsed.catsV2)migrateCategories();}}else{categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=sampleWeek();}}catch(e){categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=sampleWeek();}save();}
 
 /* ---------- toast + undo ---------- */
 function showToast(msg,opts={}){
@@ -1054,9 +1102,13 @@ function render(){
   fitHours();
   $('range-work').setAttribute('aria-pressed',String(rangeMode==='work'));
   $('range-full').setAttribute('aria-pressed',String(rangeMode==='full'));
+  $('single-keys').checked=singleKeys;
   renderMonth();
   renderCatFilters();
+  // A block with the focus is rebuilt below; rove gives the focus back to it, or to the nearest.
+  const hadFocus=blockHasFocus();
   renderCalendar(week,perDay,cap);
+  rove(hadFocus);
   renderSummary(week);
   renderSelectBar();
   renderEmptyBar(week);
@@ -1184,6 +1236,8 @@ function noteLines(px,print){
   const [pad,titleH,timeH,lineH]=print?[2,10.8,8.8,10.8]:[6,15.6,12.1,16.2];
   return Math.max(0,Math.floor((px-2-2-pad*2-titleH-2-timeH-2-3)/lineH));
 }
+/* A block's accessible name: "Gym, 9:00 AM to 10:00 AM, Health, done, selected". */
+function blockLabel(b,sel){return `${b.title}, ${time(b.start)} to ${time(b.start+b.duration)}, ${getCategory(b.cat).name}${b.done?', done':''}${sel?', selected':''}`;}
 function renderEvents(lane,items,wide){
   const H=printing?PRINT_HOUR:hourPx();const groups=[];let group=[],far=-Infinity;
   for(const e of items){if(group.length&&e.start>=far){groups.push(group);group=[];far=-Infinity;}group.push(e);far=Math.max(far,e.start+e.duration);}
@@ -1204,8 +1258,9 @@ function renderEvents(lane,items,wide){
       const oneLine=!short&&px<64;
       const node=document.createElement('div');
       node.className='event'+(short?' short':'')+(oneLine?' one-line':'')+(!short&&px<48?' snug':'')+(tiny?' tiny':'')+(b.done?' done':'')+(sel?' selected':'');
-      node.dataset.id=b.id;node.tabIndex=0;node.setAttribute('role','button');
-      node.setAttribute('aria-label',`${b.title}, ${time(b.start)} to ${time(b.start+b.duration)}, ${c.name}${b.done?', done':''}`);
+      // One block takes Tab, the calendar's one stop (rove).
+      node.dataset.id=b.id;node.tabIndex=-1;node.setAttribute('role','button');
+      node.setAttribute('aria-label',blockLabel(b,sel));
       node.style.setProperty('--fill',tint(c.color,.86));node.style.setProperty('--edge',tint(c.color,.6));node.style.setProperty('--ink-c',shade(c.color,.45));
       node.style.top=`calc(${at(b.start-viewStart)} + 1px)`;node.style.height=`calc(${at(b.duration)} - 2px)`;
       if(n>1){const col=cols.get(b.id);node.style.left=`calc(${col/n*100}% + 3px)`;node.style.width=`calc(${100/n}% - 6px)`;node.style.right='auto';}
@@ -1218,7 +1273,8 @@ function renderEvents(lane,items,wide){
       node.addEventListener('pointerenter',e=>{hoverId=b.id;if(e.pointerType!=='mouse')return;tipPos={x:e.clientX,y:e.clientY};clearTimeout(tipTimer);tipTimer=setTimeout(()=>{if(!active&&!quick&&!ctxOpen&&!creating)showTip(b);},450);});
       node.addEventListener('pointermove',e=>{tipPos={x:e.clientX,y:e.clientY};});
       node.addEventListener('pointerleave',()=>{if(hoverId===b.id)hoverId=null;hideTip();});
-      node.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openEditor(b.id);}else if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();if(actsOnSelection(b.id))deleteSelection();else deleteBlock(b.id);}else if(e.key==='ContextMenu'||(e.shiftKey&&e.key==='F10')){e.preventDefault();const r=node.getBoundingClientRect();menuFor(b,r.left+12,r.top+12);}});
+      // Space, Delete, the arrows and the rest are the page's keys on a block (blockKey).
+      node.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.altKey&&!e.ctrlKey&&!e.metaKey){e.preventDefault();openEditor(b.id);}else if(e.key==='ContextMenu'||(e.shiftKey&&e.key==='F10')){e.preventDefault();const r=node.getBoundingClientRect();menuFor(b,r.left+12,r.top+12);}});
       lane.appendChild(node);
     }
   }
@@ -1285,7 +1341,7 @@ function actsOnSelection(id){if(!selected.size||(id!==null&&!selected.has(id)))r
 function clearsSelection(){return selected.size>=2||selectMode;}
 function clearSelection(){selected.clear();anchorId=null;selectMode=false;}
 function pruneSelection(){const drawn=new Set(drawnBlocks().map(b=>b.id));selected=new Set([...selected].filter(id=>drawn.has(id)));if(anchorId!==null&&!drawn.has(anchorId))anchorId=null;}
-function showSelection(){document.querySelectorAll('.event[data-id]').forEach(el=>el.classList.toggle('selected',selected.has(el.dataset.id)));renderSelectBar();}
+function showSelection(){document.querySelectorAll('.event[data-id]').forEach(el=>{const sel=selected.has(el.dataset.id);el.classList.toggle('selected',sel);const b=blocks.find(x=>x.id===el.dataset.id);if(b&&!el.classList.contains('orig'))el.setAttribute('aria-label',blockLabel(b,sel));});renderSelectBar();}
 function selectOnly(id){selected=new Set([id]);anchorId=id;showSelection();}
 function rangeBetween(list,from,to){const order=inTimeOrder(list).map(b=>b.id);const j=order.indexOf(to);if(j<0)return [];const i=from===null?-1:order.indexOf(from);if(i<0)return [to];return order.slice(Math.min(i,j),Math.max(i,j)+1);}
 function clickSelect(id,range){if(range)rangeBetween(drawnBlocks(),anchorId,id).forEach(x=>selected.add(x));else if(selected.has(id))selected.delete(id);else selected.add(id);anchorId=id;showSelection();}
@@ -1382,7 +1438,7 @@ function openQuick(day,start,end){
   // On a touch screen the keyboard waits until the title is tapped.
   (touchScreen()?q:$('quick-title')).focus({preventScroll:true});
 }
-function closeQuick(){if(!quick&&!draftEl)return;$('quick').hidden=true;if(draftEl){draftEl.remove();draftEl=null;}quick=null;}
+function closeQuick(){if(!quick&&!draftEl)return;const hadFocus=$('quick').contains(document.activeElement);$('quick').hidden=true;if(hadFocus)$('calendar-scroll').focus({preventScroll:true});if(draftEl){draftEl.remove();draftEl=null;}quick=null;}
 /* Where a quick add chip leaves the focus, the chip itself being redrawn: the title, ready to type
    into, or on a touch screen the card, so the keyboard stays down. */
 function quickFocus(){(touchScreen()?$('quick'):$('quick-title')).focus({preventScroll:true});}
@@ -1438,7 +1494,7 @@ $('ctx').addEventListener('keydown',e=>{
   const items=[...$('ctx').querySelectorAll('button:not(:disabled)')];const i=items.indexOf(document.activeElement);
   if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();items[(i+1)%items.length].focus();}
   else if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();items[(i-1+items.length)%items.length].focus();}
-  else if(e.key==='Escape'||e.key==='Tab'){e.preventDefault();e.stopPropagation();closeCtx();if(ctxReturn&&document.contains(ctxReturn))ctxReturn.focus();}
+  else if(e.key==='Escape'||e.key==='Tab'){e.preventDefault();e.stopPropagation();closeCtx();if(ctxReturn&&document.contains(ctxReturn))ctxReturn.focus();else if(ctxReturn&&ctxReturn.matches('.event[data-id]'))refocusBlock(ctxReturn.dataset.id);}
 });
 $('ctx').addEventListener('contextmenu',e=>e.preventDefault());
 function blockMenu(b,x,y){
@@ -1591,7 +1647,7 @@ function openEditor(id,preset={}){
   // On a touch screen the keyboard waits until a field is tapped; elsewhere, type the title at once.
   setTimeout(()=>(touchScreen()?$('form'):$('task-title')).focus({preventScroll:true}),0);
 }
-function closeEditor(){closePicker();$('overlay').classList.remove('open');editId=null;if(lastFocus&&document.contains(lastFocus))lastFocus.focus();}
+function closeEditor(){closePicker();$('overlay').classList.remove('open');editId=null;if(lastFocus&&document.contains(lastFocus))lastFocus.focus();else if(lastFocus&&lastFocus.matches&&lastFocus.matches('.event[data-id]'))refocusBlock(lastFocus.dataset.id);}
 /* Draws the chosen category everywhere the editor shows it: its field, the header's tint and Done ring, and the block's own day in "Also on". */
 function renderEditorCats(){
   const c=categories.find(x=>x.id===editorCat);
@@ -1911,6 +1967,88 @@ function icsAt(dateKey,mins){const d=fromKey(dateKey);d.setMinutes(mins);return 
 function exportIcs(){closeExportMenu();const week=thisWeekBlocks().sort((a,b)=>a.date.localeCompare(b.date)||a.start-b.start);if(!week.length){showToast('This week has no blocks to export');return;}const stamp=icsUtc(new Date());const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Daymark Weekly Planner//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH'];week.forEach(b=>{const cat=getCategory(b.cat).name;const desc=(b.desc?b.desc+'\n':'')+'Category: '+cat;lines.push('BEGIN:VEVENT','UID:'+b.id+'@daymarkweekly.app','DTSTAMP:'+stamp,'DTSTART:'+icsUtc(icsAt(b.date,b.start)),'DTEND:'+icsUtc(icsAt(b.date,b.start+b.duration)),'SUMMARY:'+icsText(b.title),'DESCRIPTION:'+icsText(desc),'CATEGORIES:'+icsText(cat),'TRANSP:OPAQUE','END:VEVENT');});lines.push('END:VCALENDAR');downloadBlob(new Blob([lines.map(icsFold).join('\r\n')+'\r\n'],{type:'text/calendar;charset=utf-8'}),'daymark-week-'+key(weekStart)+'.ics');showToast(`Saved ${week.length} ${week.length===1?"block":"blocks"} as a .ics file. In Google Calendar, open Settings, then Import & export.`,{ms:7000});}
 $('export-ics').addEventListener('click',exportIcs);
 
+/* ---------- the calendar from the keyboard ---------- */
+/* One Tab stop (a roving tabindex), arrows between blocks, Space to select, Alt+arrows to move. */
+function inCalendar(el){return !!el&&$('calendar-scroll').contains(el);}
+/* The blocks drawn, in the page's order: day by day, each day's by start time. */
+function blockEls(){return [...$('calendar-scroll').querySelectorAll('.event[data-id]:not(.orig)')];}
+function blockOfEl(el){return blocks.find(b=>b.id===el.dataset.id);}
+function dayEls(){const all=blockEls();return [...$('calendar-scroll').querySelectorAll('.day-lane')].map(l=>all.filter(b=>b.closest('.day-lane')===l));}
+function blockHasFocus(){const a=document.activeElement;return !!a&&a.matches&&a.matches('.event[data-id]')&&inCalendar(a);}
+function tabStop(){return blockEls().find(el=>el.tabIndex===0)||$('calendar-scroll');}
+function focusBlock(el){const sc=$('calendar-scroll');blockEls().forEach(b=>{b.tabIndex=b===el?0:-1;});sc.tabIndex=-1;el.focus({preventScroll:true});el.scrollIntoView({block:'nearest',inline:'nearest'});}
+function focusCalendar(){const stop=tabStop();stop.focus({preventScroll:true});if(stop!==$('calendar-scroll'))stop.scrollIntoView({block:'nearest',inline:'nearest'});}
+/* After the blocks are drawn: exactly one of them takes Tab (the one the keyboard was last on, else the
+   first of the focused day, else the first drawn), or the calendar itself when none is drawn. With
+   restore (a block had the focus before the redraw), it gets the focus back; when that block is gone,
+   the nearest one on its day does, else the calendar. */
+function rove(restore){
+  const sc=$('calendar-scroll');const els=blockEls();
+  let stop=focusId===null?undefined:els.find(el=>el.dataset.id===focusId);let lost=false;
+  if(!stop&&focusId!==null&&focusAt!==null){let best=Infinity;els.forEach(el=>{const b=blockOfEl(el);if(!b||b.date!==focusAt.date)return;const far=Math.abs(b.start-focusAt.start);if(far<best){best=far;stop=el;}});lost=!stop;}
+  if(!stop){const lane=sc.querySelector(`.day-lane[data-day="${focusDay}"]`);stop=els.find(el=>el.closest('.day-lane')===lane)||els[0];}
+  els.forEach(el=>{el.tabIndex=el===stop?0:-1;});sc.tabIndex=stop?-1:0;
+  sc.setAttribute('aria-label','Calendar, '+(dayMode&&!printing?viewTitle():'week of '+viewTitle())+(stop?'':', no blocks'));
+  if(restore||(document.activeElement===sc&&wantsBlock)){
+    if(stop&&!(restore&&lost)){wantsBlock=false;stop.focus({preventScroll:true});}
+    else if(stop)sc.focus({preventScroll:true});
+    else{wantsBlock=true;sc.focus({preventScroll:true});}
+  }
+}
+/* The calendar gets the focus back after a dialog or menu opened from block id closes, the block having
+   been redrawn (or deleted) meanwhile. */
+function refocusBlock(id){if(id)focusId=id;rove(true);}
+/* The block a step of the arrows, Home or End goes to from el, if any. ← and →: the nearest block by
+   start time on the previous or next shown day with blocks; at the edge of the shown days, none. */
+function keyTarget(el,k){
+  const all=dayEls();const d=all.findIndex(list=>list.includes(el));const day=all[d]||[];const i=day.indexOf(el);
+  if(k==='ArrowUp')return day[i-1]||null;if(k==='ArrowDown')return day[i+1]||null;
+  if(k==='Home')return day[0]||null;if(k==='End')return day[day.length-1]||null;
+  const dir=k==='ArrowLeft'?-1:1;const start=(blockOfEl(el)||{start:0}).start;
+  for(let j=d+dir;j>=0&&j<all.length;j+=dir){if(!all[j].length)continue;let best=all[j][0],far=Infinity;all[j].forEach(b=>{const gap=Math.abs((blockOfEl(b)||{start:0}).start-start);if(gap<far){far=gap;best=b;}});return best;}
+  return null;
+}
+/* A block's place in words: "Tue 9:00 AM–10:00 AM". */
+function placeOf(date,start,duration){return `${WD[dayIndex(date)]} ${time(start)}–${time(start+duration)}`;}
+const ALT_STEPS={ArrowUp:[0,-STEP],ArrowDown:[0,STEP],ArrowLeft:[-1,0],ArrowRight:[1,0]};
+/* Alt+arrows on block id: the selection when the block is one of several selected, else just this
+   block; each stays in the shown week and its own day. The toast, a polite live region, says where. */
+function moveByKey(id,k){
+  const b=blocks.find(x=>x.id===id);if(!b)return;
+  const [days,minutes]=ALT_STEPS[k];const many=selected.has(id)&&selected.size>1;
+  const list=many?selectedBlocks():[b];const sh=clampShift(list,{days,minutes});
+  if(!sh.days&&!sh.minutes){showToast(many?"The selected blocks can't move further that way":`${b.title} can't move further that way`);return;}
+  // In Day view the shown day follows what moved, so it stays in view with the focus.
+  if(dayMode&&sh.days)focusDay+=sh.days;
+  focusAt={date:offsetKey(b.date,sh.days),start:b.start+sh.minutes};
+  const first=inTimeOrder(list)[0];
+  const msg=many?`${count(list.length)} moved, the first to ${placeOf(offsetKey(first.date,sh.days),first.start+sh.minutes,first.duration)}`:`${b.title} moved to ${placeOf(focusAt.date,focusAt.start,b.duration)}`;
+  changeSelection(()=>list.forEach(x=>{x.date=offsetKey(x.date,sh.days);x.start+=sh.minutes;}),msg);
+}
+/* A key pressed while block id has the focus, without Ctrl or Cmd; true when it was the block's key. */
+function blockKey(e,id){
+  const el=document.activeElement;const arrow=Object.hasOwn(ALT_STEPS,e.key);
+  // Only on a block: elsewhere Alt+← and Alt+→ are the browser's Back and Forward.
+  if(e.altKey){if(!arrow)return false;e.preventDefault();moveByKey(id,e.key);return true;}
+  if(arrow||e.key==='Home'||e.key==='End'){e.preventDefault();const next=keyTarget(el,e.key);if(next)focusBlock(next);return true;}
+  if(e.key===' '){e.preventDefault();clickSelect(id,false);return true;}
+  // The selection when this block is one of several selected; otherwise just this block.
+  if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();if(selected.has(id)&&selected.size>1)deleteSelection();else deleteBlock(id);return true;}
+  // The focus goes to the new day's or week's Tab stop.
+  if(e.key==='PageUp'||e.key==='PageDown'){e.preventDefault();focusId=null;focusAt=null;stepView(e.key==='PageUp'?-1:1);return true;}
+  return false;
+}
+/* Shows the summary panel if it's hidden, then gives the week's summary the focus. */
+function skipToSummary(){if(railCollapsed)toggleRail();$('summary-card').focus();}
+$('calendar-scroll').addEventListener('focusin',e=>{const el=e.target.closest&&e.target.closest('.event[data-id]');if(!el)return;wantsBlock=false;const b=blockOfEl(el);focusId=el.dataset.id;focusAt=b?{date:b.date,start:b.start}:null;blockEls().forEach(x=>{x.tabIndex=x===el?0:-1;});$('calendar-scroll').tabIndex=-1;});
+document.addEventListener('focusin',e=>{if(e.target!==$('calendar-scroll'))wantsBlock=false;});
+// A press on empty time gives the calendar the focus, so its single-key shortcuts work for the mouse too;
+// a block takes the focus itself when pressed.
+$('calendar-scroll').addEventListener('pointerdown',e=>{if(!e.target.closest||e.target.closest('.event,button,a,input'))return;wantsBlock=false;$('calendar-scroll').focus({preventScroll:true});});
+$('skip-calendar').addEventListener('click',e=>{e.preventDefault();focusCalendar();});
+$('skip-summary').addEventListener('click',e=>{e.preventDefault();skipToSummary();});
+$('single-keys').addEventListener('change',e=>{singleKeys=e.target.checked;save();});
+
 /* ---------- keyboard ---------- */
 document.addEventListener('keydown',e=>{
   if(ctxOpen){if(e.key==='Escape'){e.preventDefault();closeCtx();}return;}
@@ -1934,8 +2072,15 @@ document.addEventListener('keydown',e=>{
     if(ck==='x'&&target){e.preventDefault();cutBlock(target);return;}
     if(ck==='v'&&clip){e.preventDefault();pasteBlock(hoverSlot);return;}
   }
-  if(typing||e.ctrlKey||e.metaKey||e.altKey)return;
-  const k=e.key.toLowerCase();
+  if(typing||e.ctrlKey||e.metaKey)return;
+  // A block with the focus has its own keys: arrows, Home, End, Space, Delete, PageUp, PageDown, and
+  // Alt+arrows to move it (blockKey). Before Alt is let go of below, so they reach it.
+  if(focused!==null&&blockKey(e,focused))return;
+  if(e.altKey)return;
+  // N, T, W, D, C, X, [ and ] act only while the calendar has the focus, and not at all with the
+  // shortcuts panel's switch off: typing elsewhere, or with a screen reader, is safe.
+  const k=e.key.length===1?e.key.toLowerCase():'';
+  if(k!==''&&'ntwdcx[]'.includes(k)&&!(singleKeys&&inCalendar(document.activeElement)))return;
   if(many&&!e.defaultPrevented){
     const nudge={ArrowUp:[0,-STEP],ArrowDown:[0,STEP],ArrowLeft:[-1,0],ArrowRight:[1,0]};
     if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();deleteSelection();return;}
@@ -1945,12 +2090,14 @@ document.addEventListener('keydown',e=>{
   if(k==='n'){e.preventDefault();openEditor(null,{day:focusDay});}
   else if(k==='t'){e.preventDefault();goToday();}
   else if(k==='w'){dayMode=false;save();render();}
-  else if(k==='d'){dayMode=true;save();render();}
+  else if(k==='d'){const b=blocks.find(x=>x.id===focused);if(b)focusDay=dayIndex(b.date);dayMode=true;save();render();}
   else if(k==='c'){e.preventDefault();toggleCompact();}
   else if(k==='x'&&target){e.preventDefault();toggleDone(target,focusedEventId()===target);}
-  else if(e.key==='['){e.preventDefault();toggleSidebar();}
-  else if(e.key===']'){e.preventDefault();toggleRail();}
+  else if(k==='['){e.preventDefault();toggleSidebar();}
+  else if(k===']'){e.preventDefault();toggleRail();}
   else if((e.key==='ArrowLeft'||e.key==='ArrowRight')&&!(e.target.closest&&e.target.closest('.event,.menu'))){e.preventDefault();stepView(e.key==='ArrowLeft'?-1:1);}
+  // On the calendar itself, as on a block: the previous or next day or week.
+  else if((e.key==='PageUp'||e.key==='PageDown')&&document.activeElement===$('calendar-scroll')){e.preventDefault();stepView(e.key==='PageUp'?-1:1);}
 });
 
 /* ---------- start ---------- */
