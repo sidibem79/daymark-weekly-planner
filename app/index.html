@@ -1176,13 +1176,15 @@ function renderCalendar(week,perDay,cap){
 // Print's hour height (the print rules): a printout draws its blocks to it, as beforeprint redraws
 // before print's rules are in force.
 const PRINT_HOUR=26;
-// How many lines of a block's note fit under its title (one line, as it may be) and start time:
-// on screen, title 13px × 1.2, time 11px × 1.1 and note 12px × 1.35 inside 6px padding; in print,
-// 9px, 8px and 8px inside 2px; a 1px border, 2px gaps and the note's 3px margin either way.
-// A title on two lines pushes the note out of view whole, never half a line of it.
+// How many lines of a block's note fit under its title and start time. On screen it leaves the
+// title one line, as it may be: a longer one pushes the note out of view whole. In print it leaves
+// the two lines a title can take there, one-line blocks included, so the note stays whole lines
+// inside the block. On screen, title 13px × 1.2, time 11px × 1.1 and note 12px × 1.35 inside 6px
+// padding; in print, 9px, 8px and 8px inside 2px; a 1px border, 2px gaps and a 3px margin either way.
 function noteLines(px,print){
   const [pad,titleH,timeH,lineH]=print?[2,10.8,8.8,10.8]:[6,15.6,12.1,16.2];
-  return Math.max(0,Math.floor((px-2-2-pad*2-titleH-2-timeH-2-3)/lineH));
+  const titleLines=print?2:1;
+  return Math.max(0,Math.floor((px-2-2-pad*2-titleH*titleLines-2-timeH-2-3)/lineH));
 }
 function renderEvents(lane,items,wide){
   const H=printing?PRINT_HOUR:hourPx();const groups=[];let group=[],far=-Infinity;
