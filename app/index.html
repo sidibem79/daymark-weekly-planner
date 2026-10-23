@@ -1498,8 +1498,8 @@ function openCtx(x,y,items){
   const first=m.querySelector('button:not(:disabled)');if(first)first.focus({preventScroll:true});
 }
 function closeCtx(){if(!ctxOpen)return;$('ctx').hidden=true;ctxOpen=false;$('week-menu').setAttribute('aria-expanded','false');}
-/* The focus goes back to what opened the menu, or to its block when that was redrawn; before an item's action too, so a dialog it opens returns the focus there. */
-function ctxFocusBack(){if(ctxReturn&&document.contains(ctxReturn))ctxReturn.focus();else if(ctxReturn&&ctxReturn.matches('.event[data-id]'))refocusBlock(ctxReturn.dataset.id);}
+/* The focus goes back to what opened the menu, or to its block when that was redrawn, or to the calendar after the menu for empty time; before an item's action too, so a dialog it opens returns the focus there. */
+function ctxFocusBack(){if(ctxReturn&&document.contains(ctxReturn))ctxReturn.focus();else if(ctxReturn&&ctxReturn.matches('.event[data-id]'))refocusBlock(ctxReturn.dataset.id);else if(!ctxReturn)focusCalendar();}
 $('ctx').addEventListener('keydown',e=>{
   const items=[...$('ctx').querySelectorAll('button:not(:disabled)')];const i=items.indexOf(document.activeElement);
   if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();items[(i+1)%items.length].focus();}
@@ -2062,7 +2062,7 @@ $('single-keys').addEventListener('change',e=>{singleKeys=e.target.checked;save(
 
 /* ---------- keyboard ---------- */
 document.addEventListener('keydown',e=>{
-  if(ctxOpen){if(e.key==='Escape'){e.preventDefault();closeCtx();}return;}
+  if(ctxOpen){if(e.key==='Escape'){e.preventDefault();closeCtx();ctxFocusBack();}return;}
   if(quick){if(e.key==='Escape'){e.preventDefault();closeQuick();}return;}
   if($('template-overlay').classList.contains('open')){if(e.key==='Escape'){e.preventDefault();closeTemplates();}return;}
   if($('category-overlay').classList.contains('open')){if(e.key==='Escape'){e.preventDefault();closeCategoryManager();}return;}
@@ -2092,6 +2092,8 @@ document.addEventListener('keydown',e=>{
   // shortcuts panel's switch off: typing elsewhere, or with a screen reader, is safe.
   const k=e.key.length===1?e.key.toLowerCase():'';
   if(k!==''&&'ntwdcx[]'.includes(k)&&!(singleKeys&&inCalendar(document.activeElement)))return;
+  // A held toggle acts once, not on and off with each repeat.
+  if(e.repeat&&k!==''&&'cx[]'.includes(k))return;
   if(many&&!e.defaultPrevented){
     const nudge={ArrowUp:[0,-STEP],ArrowDown:[0,STEP],ArrowLeft:[-1,0],ArrowRight:[1,0]};
     if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();deleteSelection();return;}
