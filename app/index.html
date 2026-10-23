@@ -460,7 +460,8 @@ html.touch .touch-hint{display:block}
   .main{height:auto;min-height:100vh}
   .content{flex-direction:column;padding:12px}
   .cal-card{flex:none}
-  .cal-scroll{flex:none;height:calc(100dvh - 190px);min-height:420px}
+  /* Less the empty week's bar while it shows (--empty-bar-height, set by renderEmptyBar), so the calendar still ends at the screen's bottom. */
+  .cal-scroll{flex:none;height:calc(100dvh - 190px - var(--empty-bar-height,0px));min-height:calc(420px - var(--empty-bar-height,0px))}
   .rail{width:auto;overflow:visible}
   .details{position:fixed;left:0;right:0;bottom:0;z-index:100;border-radius:20px 20px 0 0;box-shadow:0 -12px 40px color-mix(in srgb,var(--ink) 18%,transparent);padding:20px 20px 24px;max-height:70dvh;overflow:auto}
 }
@@ -477,7 +478,7 @@ html.touch .touch-hint{display:block}
   /* Day view: the day strip names the day, so the calendar's weekday header would repeat it. */
   .cal-inner.single .weekdays{display:none}
   .content{padding:10px}
-  .cal-scroll{height:calc(100dvh - 240px)}
+  .cal-scroll{height:calc(100dvh - 240px - var(--empty-bar-height,0px))}
   .overlay{padding:0;align-items:flex-end}
   .dialog,.dialog.wide{width:100%;max-height:92dvh;border-radius:20px 20px 0 0}
   .dlg-head{padding:16px 12px 0 16px}.dlg-sub{padding:0 16px}.dlg-body{padding:12px 16px 20px}.dlg-foot{padding:12px 16px calc(12px + env(safe-area-inset-bottom, 0px))}
@@ -1049,6 +1050,8 @@ function render(){
   const cap=Math.max(540,...perDay);
   // The day strip and the header first, so fitHours measures the room and the header this render
   // shows; then the hour's height, which renderCalendar's blocks read (hourPx) for their looks.
+  // The empty week's bar above the calendar too, so the room fitHours measures is this render's.
+  renderEmptyBar(week);
   renderDayStrip(perDay,cap);
   renderCalendarHead();
   fitHours();
@@ -1059,7 +1062,6 @@ function render(){
   renderCalendar(week,perDay,cap);
   renderSummary(week);
   renderSelectBar();
-  renderEmptyBar(week);
   const sk=key(weekStart)+'|'+rangeMode;
   if(sk!==scrollKey&&!printing){scrollKey=sk;scrollToStart();}
 }
@@ -1069,13 +1071,17 @@ function emptyOffer(){const dates=weekDates();const prev=blocks.filter(b=>dates.
 function setText(el,text){if(el.textContent!==text)el.textContent=text;}
 function renderEmptyBar(week){
   const show=!week.length&&!printing&&blankWeek!==key(weekStart);
-  $('empty-bar').hidden=!show;if(!show)return;
+  $('empty-bar').hidden=!show;
+  if(!show){measureEmptyBar();return;}
   const o=emptyOffer();emptyMain=o.main;
   setText($('empty-hint'),matchMedia('(pointer: coarse)').matches?'Tap any empty hour to add a block.':'Click or drag on any empty hour to add a block.');
   setText($('empty-main'),o.label);
   $('empty-template').hidden=!o.template;
   $('empty-sample').hidden=blocks.length>0;
+  measureEmptyBar();
 }
+/* The bar's height while it shows, for the tablet and phone calendar heights (.cal-scroll); gone while it is hidden. */
+function measureEmptyBar(){const bar=$('empty-bar');const root=document.documentElement;if(bar.hidden)root.style.removeProperty('--empty-bar-height');else root.style.setProperty('--empty-bar-height',bar.offsetHeight+'px');}
 /* Where "Add your first block" opens the editor: the day shown in Day view, else today when it is in the shown week, else Monday; at the next whole hour when that day is today (no earlier than 7 AM, no later than 10 PM), else 9:00. */
 function firstBlockAt(now=new Date()){const today=(now.getDay()+6)%7;const todayShown=key(now)===key(dateFor(today));const day=dayMode?focusDay:(todayShown?today:0);if(!todayShown||day!==today)return {day,start:540};return {day,start:clamp((now.getHours()+1)*60,WORK_START,DAY_MIN-120)};}
 function renderMonth(){
@@ -1471,7 +1477,7 @@ document.addEventListener('pointerdown',e=>{
 },true);
 $('calendar-scroll').addEventListener('scroll',()=>{closeCtx();hideTip();},{passive:true});
 let resizeTimer=null;
-window.addEventListener('resize',()=>{closeCtx();if(rangeMode==='work'&&!quick&&!active&&!creating&&!boxing){clearTimeout(resizeTimer);resizeTimer=setTimeout(render,150);}});
+window.addEventListener('resize',()=>{closeCtx();measureEmptyBar();if(rangeMode==='work'&&!quick&&!active&&!creating&&!boxing){clearTimeout(resizeTimer);resizeTimer=setTimeout(render,150);}});
 
 /* ---------- week templates ---------- */
 function openTemplates(){closeExportMenu();lastFocus=document.activeElement;$('template-name').value='';$('template-hint').textContent='';renderTemplates();$('template-overlay').classList.add('open');setTimeout(()=>$('template-name').focus(),0);}
@@ -1820,9 +1826,9 @@ $('month-prev').addEventListener('click',()=>{const thu=dateFor(3);goWeek(new Da
 $('month-next').addEventListener('click',()=>{const thu=dateFor(3);goWeek(new Date(thu.getFullYear(),thu.getMonth()+1,4));});
 $('copy').addEventListener('click',copyPrevious);
 $('sample').addEventListener('click',loadSample);$('empty-sample').addEventListener('click',loadSample);
-// The empty week's bar: its filled button, and Dismiss, which puts it away for this week only.
+// The empty week's bar: its filled button, and Dismiss, which puts it away for this week only (redrawn, so Compact fills the room it leaves).
 $('empty-main').addEventListener('click',()=>{if(emptyMain==='copy')copyPrevious();else if(emptyMain==='template')openTemplates();else openEditor(null,firstBlockAt());});
-$('empty-dismiss').addEventListener('click',()=>{blankWeek=key(weekStart);$('empty-bar').hidden=true;});
+$('empty-dismiss').addEventListener('click',()=>{blankWeek=key(weekStart);render();});
 $('clear').addEventListener('click',()=>{if(!thisWeekBlocks().length){showToast('This week is already empty');return;}replaceWeek([],'Week cleared');});
 $('copy-next').addEventListener('click',()=>{const wk=thisWeekBlocks();if(!wk.length){showToast('This week has no blocks to copy');return;}const snap=snapshot();const nextDates=weekDates().map(k=>offsetKey(k,7));blocks=blocks.filter(b=>!nextDates.includes(b.date)).concat(wk.map(b=>({...b,id:uid(),date:offsetKey(b.date,7)})));save();render();showToast('Copied to the week of '+MON[dateFor(7).getMonth()]+' '+dateFor(7).getDate(),{undo:snap});});
 $('view-week').addEventListener('click',()=>{dayMode=false;save();render();});
