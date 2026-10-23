@@ -1486,7 +1486,7 @@ function openCtx(x,y,items){
       categories.forEach(c=>{const b=document.createElement('button');b.type='button';b.className=named?'item ctx-cat-row':'ctx-cat';b.setAttribute('role','menuitemradio');b.setAttribute('aria-checked',String(c.id===it.cats.checked));b.style.setProperty('--c',c.color);
         if(named)b.innerHTML=`<span class="dot" aria-hidden="true"></span><span class="nm">${escapeHtml(c.name.trim()||'Untitled')}</span>${c.id===it.cats.checked?ICON_TICK:''}`;
         else{b.setAttribute('aria-pressed',String(c.id===it.cats.checked));b.setAttribute('aria-label',c.name);b.title=c.name;b.innerHTML='<span aria-hidden="true"></span>';}
-        b.addEventListener('click',()=>{closeCtx();it.cats.pick(c.id);});row.appendChild(b);});
+        b.addEventListener('click',()=>{closeCtx();ctxFocusBack();it.cats.pick(c.id);});row.appendChild(b);});
       m.appendChild(row);return;
     }
     const b=document.createElement('button');b.type='button';b.className='item'+(it.danger?' danger':'');b.setAttribute('role','menuitem');b.disabled=!!it.disabled;
