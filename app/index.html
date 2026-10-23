@@ -1276,7 +1276,7 @@ function renderEvents(lane,items,wide){
       // The start time only: the block's height shows its end. Moving one shows its range.
       node.innerHTML=`<span class="title">${escapeHtml(b.title)}</span><span class="time">${time(b.start)}</span>${lines?`<span class="desc" style="--lines:${lines}">${escapeHtml(b.desc)}</span>`:''}<button type="button" class="done-btn" tabindex="-1" aria-label="${b.done?'Mark as not done':'Mark as done'}" title="${b.done?'Mark as not done':'Mark as done'}">${ICON_CHECK}</button><span class="resize" title="Drag to change length" aria-hidden="true"></span>`;
       node.addEventListener('pointerdown',e=>onPointerDown(e,b,node));
-      node.querySelector('.done-btn').addEventListener('click',e=>{e.stopPropagation();toggleDone(b.id);});
+      node.querySelector('.done-btn').addEventListener('click',e=>{e.stopPropagation();toggleDone(b.id,true);});
       node.addEventListener('contextmenu',e=>{e.preventDefault();if(e.pointerType==='touch'||pressing||(active&&active.touch))return;menuFor(b,e.clientX,e.clientY);});
       node.addEventListener('pointerenter',e=>{hoverId=b.id;if(e.pointerType!=='mouse')return;tipPos={x:e.clientX,y:e.clientY};clearTimeout(tipTimer);tipTimer=setTimeout(()=>{if(!active&&!quick&&!ctxOpen&&!creating)showTip(b);},450);});
       node.addEventListener('pointermove',e=>{tipPos={x:e.clientX,y:e.clientY};});
