@@ -1497,7 +1497,8 @@ function openCtx(x,y,items){
   const w=m.offsetWidth,h=m.offsetHeight;m.style.left=clamp(x,8,innerWidth-w-8)+'px';m.style.top=(y+h>innerHeight-8?Math.max(8,y-h):y)+'px';
   const first=m.querySelector('button:not(:disabled)');if(first)first.focus({preventScroll:true});
 }
-function closeCtx(){if(!ctxOpen)return;$('ctx').hidden=true;ctxOpen=false;$('week-menu').setAttribute('aria-expanded','false');}
+/* Closed by a scroll or a resize as well: the focus mustn't stay in the hidden menu. */
+function closeCtx(){if(!ctxOpen)return;const hadFocus=$('ctx').contains(document.activeElement);$('ctx').hidden=true;ctxOpen=false;$('week-menu').setAttribute('aria-expanded','false');if(hadFocus)ctxFocusBack();}
 /* The focus goes back to what opened the menu, or to its block when that was redrawn, or to the calendar after the menu for empty time; before an item's action too, so a dialog it opens returns the focus there. */
 function ctxFocusBack(){if(ctxReturn&&document.contains(ctxReturn))ctxReturn.focus();else if(ctxReturn&&ctxReturn.matches('.event[data-id]'))refocusBlock(ctxReturn.dataset.id);else if(!ctxReturn)focusCalendar();}
 $('ctx').addEventListener('keydown',e=>{
