@@ -169,18 +169,27 @@ svg{flex:none}
 .day-lane{position:relative;height:var(--grid-h);border-left:1px solid var(--line2);background-color:var(--surface);background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(var(--line2) 1px,transparent 1px);background-size:100% var(--hour),100% var(--hour);background-position:0 0,0 calc(var(--hour) / 2)}
 .day-lane.weekend{background-color:var(--bg)}
 .ghost{display:none;position:absolute;left:3px;right:3px;height:calc(var(--hour) - 2px);padding:5px 8px;border:1px dashed var(--accent-line);border-radius:8px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:11px;font-weight:500;pointer-events:none;z-index:1}
-.event{position:absolute;left:4px;right:4px;z-index:2;display:flex;flex-direction:column;gap:2px;overflow:hidden;padding:6px 9px;border:1px solid var(--edge);border-radius:8px;background:var(--fill);color:var(--ink);cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:box-shadow .12s}
+.event{position:absolute;left:4px;right:4px;z-index:2;container-type:inline-size;display:flex;flex-direction:column;gap:2px;overflow:hidden;padding:6px 9px;border:1px solid var(--edge);border-radius:8px;background:var(--fill);color:var(--ink);cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:box-shadow .12s}
 .event.lifted{box-shadow:0 0 0 2px var(--accent),0 10px 28px color-mix(in srgb,var(--ink) 22%,transparent);z-index:20}
 .event:hover{box-shadow:0 4px 14px color-mix(in srgb,var(--ink) 10%,transparent);z-index:3}
 .event.selected{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);z-index:4}
 .event.moving{opacity:.92;box-shadow:0 10px 28px color-mix(in srgb,var(--ink) 22%,transparent);cursor:grabbing;z-index:20;transition:none}
 .event .title{flex-shrink:0;font-size:13px;font-weight:600;line-height:1.2;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;overflow-wrap:anywhere;pointer-events:none}
-.event .time{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink);white-space:nowrap;pointer-events:none}
-.event .desc{margin-top:3px;font-size:12px;line-height:1.35;color:var(--ink);overflow:hidden;pointer-events:none}
-.event.snug .title{-webkit-line-clamp:1;line-clamp:1}
+.event .time{flex-shrink:0;font-family:var(--mono);font-size:11px;font-weight:500;line-height:1.1;color:var(--ink);white-space:nowrap;pointer-events:none}
+.event .desc{flex-shrink:0;margin-top:3px;font-size:12px;line-height:1.35;color:var(--ink);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--lines,1);line-clamp:var(--lines,1);overflow:hidden;overflow-wrap:anywhere;pointer-events:none}
+/* A block of an hour or more shows its start on a line of its own. Its items wrap into a second
+   column, out of view past the padding, when they don't fit: the note goes first, and whole. */
+.event:not(.short){flex-wrap:wrap;align-content:flex-start;column-gap:24px}
+.event:not(.short)>:is(.title,.time,.desc){width:100%}
+.event.one-line .title{-webkit-line-clamp:1;line-clamp:1}
+.event.snug{padding-top:3px;padding-bottom:3px;row-gap:1px}
 .event.short{flex-direction:row;align-items:center;gap:6px;padding:0 8px}
 .event.short .title{display:block;flex-shrink:1;min-width:0;font-size:12px;white-space:nowrap;text-overflow:ellipsis}.event.short .time{margin-left:auto}
-.event:not(.moving) .time{display:none}
+/* A shorter block shows its start on the title's line when its column is wide enough, the title
+   giving way first; a tiny one, only its title. Moving a block shows its range. */
+.event.short:not(.moving) .time{display:none}
+@container (min-width:100px){.event.short:not(.tiny) .time{display:block}}
+.event.short:is(:hover,:focus-visible,.done) .time{margin-right:14px}
 .event .resize{position:absolute;left:20%;right:20%;bottom:0;height:9px;cursor:ns-resize}
 .event .resize::after{content:"";display:block;margin:4px auto 0;width:24px;height:2px;border-radius:2px;background:var(--ink-c);opacity:0}
 .event:hover .resize::after,.event.selected .resize::after{opacity:.5}
@@ -544,6 +553,9 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
   .load{display:none}
   .event{box-shadow:none!important;border-radius:4px;padding:2px 5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .event .title{font-size:9px}.event .time,.event .desc{font-size:8px}
+  .event.one-line .title{-webkit-line-clamp:2;line-clamp:2}
+  .event:is(.short,.tiny) .title{font-size:9px;line-height:1.2}
+  .event.short .time{margin-right:0!important}
   .event .resize{display:none}
 }
 
@@ -1161,8 +1173,19 @@ function renderCalendar(week,perDay,cap){
     lanes.appendChild(lane);
   });
 }
+// Print's hour height (the print rules): a printout draws its blocks to it, as beforeprint redraws
+// before print's rules are in force.
+const PRINT_HOUR=26;
+// How many lines of a block's note fit under its title (one line, as it may be) and start time:
+// on screen, title 13px × 1.2, time 11px × 1.1 and note 12px × 1.35 inside 6px padding; in print,
+// 9px, 8px and 8px inside 2px; a 1px border, 2px gaps and the note's 3px margin either way.
+// A title on two lines pushes the note out of view whole, never half a line of it.
+function noteLines(px,print){
+  const [pad,titleH,timeH,lineH]=print?[2,10.8,8.8,10.8]:[6,15.6,12.1,16.2];
+  return Math.max(0,Math.floor((px-2-2-pad*2-titleH-2-timeH-2-3)/lineH));
+}
 function renderEvents(lane,items,wide){
-  const H=hourPx();const groups=[];let group=[],far=-Infinity;
+  const H=printing?PRINT_HOUR:hourPx();const groups=[];let group=[],far=-Infinity;
   for(const e of items){if(group.length&&e.start>=far){groups.push(group);group=[];far=-Infinity;}group.push(e);far=Math.max(far,e.start+e.duration);}
   if(group.length)groups.push(group);
   for(const g of groups){
@@ -1170,16 +1193,25 @@ function renderEvents(lane,items,wide){
     for(const e of g){let col=endings.findIndex(t=>t<=e.start);if(col<0){col=endings.length;endings.push(0);}endings[col]=e.start+e.duration;cols.set(e.id,col);}
     const n=Math.max(1,endings.length);
     for(const b of g){
-      const c=getCategory(b.cat);const px=b.duration/60*H;const short=px<40;const tiny=px<22;const sel=selected.has(b.id);
+      const c=getCategory(b.cat);const px=b.duration/60*H;
+      // 40px or taller has room for the start time on a line of its own: with 30-minute steps and an
+      // hour at most 72px, blocks of an hour or longer. An hour squeezed under 40px (Compact on a
+      // short screen) is short, as half an hour always is: it shows its start on the title's line
+      // when its column is wide enough (the container query), and a tiny block only its title.
+      const short=px<40;const tiny=px<22;const sel=selected.has(b.id);
+      // Under 64px the title keeps to one line, leaving room for the time; under 48px the block also
+      // trims its padding (snug).
+      const oneLine=!short&&px<64;
       const node=document.createElement('div');
-      node.className='event'+(short?' short':'')+(!short&&px<48?' snug':'')+(tiny?' tiny':'')+(b.done?' done':'')+(sel?' selected':'');
+      node.className='event'+(short?' short':'')+(oneLine?' one-line':'')+(!short&&px<48?' snug':'')+(tiny?' tiny':'')+(b.done?' done':'')+(sel?' selected':'');
       node.dataset.id=b.id;node.tabIndex=0;node.setAttribute('role','button');
       node.setAttribute('aria-label',`${b.title}, ${time(b.start)} to ${time(b.start+b.duration)}, ${c.name}${b.done?', done':''}`);
       node.style.setProperty('--fill',tint(c.color,.86));node.style.setProperty('--edge',tint(c.color,.6));node.style.setProperty('--ink-c',shade(c.color,.45));
       node.style.top=`calc(${at(b.start-viewStart)} + 1px)`;node.style.height=`calc(${at(b.duration)} - 2px)`;
       if(n>1){const col=cols.get(b.id);node.style.left=`calc(${col/n*100}% + 3px)`;node.style.width=`calc(${100/n}% - 6px)`;node.style.right='auto';}
-      const showDesc=b.desc&&px>=60;
-      node.innerHTML=`<span class="title">${escapeHtml(b.title)}</span><span class="time">${short?time(b.start):time(b.start)+' – '+time(b.start+b.duration)}</span>${showDesc?`<span class="desc">${escapeHtml(b.desc)}</span>`:''}<button type="button" class="done-btn" tabindex="-1" aria-label="${b.done?'Mark as not done':'Mark as done'}" title="${b.done?'Mark as not done':'Mark as done'}">${ICON_CHECK}</button><span class="resize" title="Drag to change length" aria-hidden="true"></span>`;
+      const lines=b.desc&&!short?noteLines(px,printing):0;
+      // The start time only: the block's height shows its end. Moving one shows its range.
+      node.innerHTML=`<span class="title">${escapeHtml(b.title)}</span><span class="time">${time(b.start)}</span>${lines?`<span class="desc" style="--lines:${lines}">${escapeHtml(b.desc)}</span>`:''}<button type="button" class="done-btn" tabindex="-1" aria-label="${b.done?'Mark as not done':'Mark as done'}" title="${b.done?'Mark as not done':'Mark as done'}">${ICON_CHECK}</button><span class="resize" title="Drag to change length" aria-hidden="true"></span>`;
       node.addEventListener('pointerdown',e=>onPointerDown(e,b,node));
       node.querySelector('.done-btn').addEventListener('click',e=>{e.stopPropagation();toggleDone(b.id);});
       node.addEventListener('contextmenu',e=>{e.preventDefault();if(e.pointerType==='touch'||pressing||(active&&active.touch))return;menuFor(b,e.clientX,e.clientY);});
@@ -1793,12 +1825,16 @@ $('clear').addEventListener('click',()=>{if(!thisWeekBlocks().length){showToast(
 $('copy-next').addEventListener('click',()=>{const wk=thisWeekBlocks();if(!wk.length){showToast('This week has no blocks to copy');return;}const snap=snapshot();const nextDates=weekDates().map(k=>offsetKey(k,7));blocks=blocks.filter(b=>!nextDates.includes(b.date)).concat(wk.map(b=>({...b,id:uid(),date:offsetKey(b.date,7)})));save();render();showToast('Copied to the week of '+MON[dateFor(7).getMonth()]+' '+dateFor(7).getDate(),{undo:snap});});
 $('view-week').addEventListener('click',()=>{dayMode=false;save();render();});
 $('view-day').addEventListener('click',()=>{dayMode=true;save();render();});
+// Room kept above the hour scrolled to, for the top half of its label and a little more.
+const LABEL_ROOM=10;
 function scrollToStart(){
   const sc=$('calendar-scroll');
   if(rangeMode!=='full'){sc.scrollTop=0;return;}
   const week=thisWeekBlocks().filter(b=>!hiddenCats.has(b.cat));
   const target=week.length?Math.max(0,Math.floor(Math.min(...week.map(b=>b.start))/60)*60-60):480;
-  sc.scrollTop=(target-viewStart)/60*hourPx();
+  // The hour's label is centred on its line: stop a little above it, so the sticky weekday header
+  // doesn't cover the label's top half.
+  sc.scrollTop=Math.max(0,(target-viewStart)/60*hourPx()-LABEL_ROOM);
 }
 $('range-work').addEventListener('click',()=>{rangeMode='work';save();render();});
 $('range-full').addEventListener('click',()=>{rangeMode='full';save();render();});
