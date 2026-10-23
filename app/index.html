@@ -313,12 +313,17 @@ select.input{font-family:var(--mono);font-size:14px;padding:0 12px}
 .ed-title:hover{border-bottom-color:color-mix(in srgb,var(--ed-accent,var(--accent)) 30%,transparent)}
 .ed-title::placeholder{color:var(--faint);font-weight:500}
 .ed-title:focus{outline:none;border-bottom-color:var(--ed-accent,var(--accent))}
-/* Done (only when editing): a real checkbox drawn as a round tick; once done, the title is struck through. */
-.done-tick{flex:none;display:grid;place-items:center;width:24px;height:24px;border:2px solid var(--ed-accent,var(--accent));border-radius:50%;color:var(--ed-accent,var(--accent));cursor:pointer}
-.done-tick svg{opacity:0}
-.done-tick:hover svg{opacity:.55}
-.done-tick:has(input:checked){background:var(--ed-accent,var(--accent));color:var(--on-accent)}
-.done-tick:has(input:checked) svg{opacity:1}
+/* Done (only when editing): a real checkbox drawn as a round tick, with "Done" beside it until it is
+   ticked (showDone); the word is part of what a click hits. Once done, the ring fills, stands alone,
+   and the title is struck through. */
+.done-tick{flex:none;display:inline-flex;align-items:center;gap:7px;min-height:32px;margin-left:-4px;padding:0 10px 0 4px;border-radius:999px;color:var(--ink);font-size:14px;font-weight:600;cursor:pointer}
+.done-tick:has(input:checked){padding-right:4px}
+.done-tick:hover{background:color-mix(in srgb,var(--ed-accent,var(--accent)) 12%,transparent)}
+.done-ring{flex:none;display:grid;place-items:center;width:24px;height:24px;border:2px solid var(--ed-accent,var(--accent));border-radius:50%;color:var(--ed-accent,var(--accent))}
+.done-ring svg{opacity:0}
+.done-tick:hover .done-ring svg{opacity:.55}
+.done-tick:has(input:checked) .done-ring{background:var(--ed-accent,var(--accent));color:var(--on-accent)}
+.done-tick:has(input:checked) .done-ring svg{opacity:1}
 .done-tick:has(input:focus-visible){outline:2px solid var(--ed-accent,var(--accent));outline-offset:2px}
 .editor-dialog:has(#task-done:checked) .ed-title{text-decoration:line-through;text-decoration-thickness:1.5px;color:var(--muted)}
 .editor-dialog .dlg-body{gap:20px;padding:20px 20px 24px}
@@ -368,6 +373,9 @@ select.input{font-family:var(--mono);font-size:14px;padding:0 12px}
 .toast button{height:32px;border:0;border-radius:8px;background:color-mix(in srgb,var(--on-accent) 12%,transparent);color:var(--on-accent);font-size:13px;font-weight:600;padding:0 12px}
 .toast button:hover{background:color-mix(in srgb,var(--on-accent) 20%,transparent)}
 .toast .x{background:transparent;color:var(--accent-soft);width:32px;padding:0;display:grid;place-items:center}
+/* While no toast shows, its buttons are out of the Tab order and out of reach, once it has faded
+   out; the message stays in place, so the live region still reads the next one. */
+.toast:not(.show) button{visibility:hidden;transition:visibility 0s .18s}
 .fab{display:none;position:fixed;right:20px;bottom:24px;width:58px;height:58px;border:0;border-radius:18px;background:var(--accent);color:var(--on-accent);box-shadow:0 10px 24px color-mix(in srgb,var(--accent) 35%,transparent);z-index:50;place-items:center}
 
 /* Quick add, context menu, done, compact, templates */
@@ -411,8 +419,11 @@ select.input{font-family:var(--mono);font-size:14px;padding:0 12px}
 .shortcuts{padding:0 0 12px}
 .shortcuts summary{cursor:pointer;padding:6px;border-radius:6px;font-size:12px;font-weight:500;color:var(--ink3)}
 .shortcuts summary:hover{background:var(--hover)}
-.shortcuts dl{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;margin:8px 6px 0;font-size:12px;color:var(--muted);align-items:baseline}
-.shortcuts dt{white-space:nowrap;color:var(--ink2)}
+/* The keys take under half of the panel, the same in every list, wrapping between key caps rather
+   than squeezing the descriptions; a key cap itself never breaks. */
+.shortcuts dl{display:grid;grid-template-columns:minmax(0,9fr) minmax(0,11fr);gap:8px 12px;margin:8px 6px 0;font-size:12px;color:var(--muted);align-items:baseline}
+.shortcuts dt{color:var(--ink2);line-height:1.75}
+.shortcuts dt kbd{white-space:nowrap}
 .shortcuts dd{margin:0}
 .tpl-row{display:flex;align-items:center;gap:10px;padding:10px 8px 10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 .tpl-row .nm{flex:1;min-width:0;font-size:14px;font-weight:500}
@@ -789,7 +800,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
   <form class="dialog editor-dialog" id="form" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1" novalidate>
     <div class="dlg-head">
       <h2 class="sr-only" id="modal-title">New block</h2>
-      <label class="done-tick" id="done-wrap" title="Mark done" hidden><input class="sr-only" type="checkbox" id="task-done" aria-label="Done"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></label>
+      <label class="done-tick" id="done-wrap" title="Mark as done" hidden><input class="sr-only" type="checkbox" id="task-done" aria-label="Done"><span class="done-ring" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="done-label" id="done-label" aria-hidden="true">Done</span></label>
       <label class="sr-only" for="task-title">Title</label>
       <input class="ed-title" id="task-title" type="text" maxlength="75" placeholder="What will you work on?" autocomplete="off">
       <button type="button" class="icon-btn" id="close" aria-label="Close"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
@@ -1640,6 +1651,9 @@ function contrast(a,b){const x=luminance(a),y=luminance(b);return (Math.max(x,y)
 function filledColours(color){const base=normalizeHex(color);const white=contrast(base,'#ffffff')>=3;const ink=white?'#ffffff':'#213247';let bg=base;for(let s=1;contrast(bg,ink)<4.5&&s<=50;s++)bg=mix(base,white?0:255,s/50);return {bg,ink};}
 /* The header: a light tint of the category's colour, and an accent deepened only as far as it must be to stand out on the tint at 3:1. */
 function headerTint(color){const base=normalizeHex(color);const light=mix(base,255,.86);let accent=base;for(let s=1;contrast(accent,light)<3&&s<=50;s++)accent=mix(base,0,s/50);return {tint:light,accent};}
+// The Done tick's look for its state: labelled "Done" beside the circle until it is ticked, then the ticked circle alone. Its
+// tooltip says what a click does; its name stays "Done", checked or not.
+function showDone(){const done=$('task-done').checked;$('done-label').hidden=done;$('done-wrap').title=done?'Mark as not done':'Mark as done';}
 function openEditor(id,preset={}){
   closeExportMenu();closeNav();closeCtx();closeQuick();lastFocus=document.activeElement;
   const found=blocks.find(b=>b.id===id);editId=found?found.id:null;
@@ -1652,7 +1666,7 @@ function openEditor(id,preset={}){
   editorDays=[];
   editorCat=found?found.cat:(categories.some(c=>c.id===preset.cat)?preset.cat:(categories.some(c=>c.id===lastCat)?lastCat:categories[0].id));
   $('delete').hidden=!found;$('error').textContent='';
-  $('done-wrap').hidden=!found;$('task-done').checked=!!(found&&found.done);
+  $('done-wrap').hidden=!found;$('task-done').checked=!!(found&&found.done);showDone();
   renderEditorCats();renderWhen();updateEditor();
   $('overlay').classList.add('open');
   // On a touch screen the keyboard waits until a field is tapped; elsewhere, type the title at once.
@@ -1699,6 +1713,7 @@ function updateEditor(){
   $('save-hint').textContent=hasTitle?'':'Add a title to save';
 }
 $('task-title').addEventListener('input',updateEditor);
+$('task-done').addEventListener('change',showDone);
 $('form').addEventListener('submit',e=>{
   e.preventDefault();closePicker();
   const title=$('task-title').value.trim();const desc=$('task-desc').value.trim();const days=editorDayList();
