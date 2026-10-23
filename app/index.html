@@ -106,6 +106,8 @@ svg{flex:none}
 .btn{height:40px;padding:0 14px;border:1px solid var(--field);border-radius:10px;background:var(--surface);color:var(--ink2);font-size:13px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
 .btn:hover{background:var(--hover)}
 .btn:disabled{color:var(--muted);background:var(--surface)}
+/* Today, while today is what's shown: plainly off, with no border, yet still readable. */
+#today:disabled{border-color:transparent;background:transparent;color:var(--muted)}
 .btn.sm{height:34px;padding:0 12px}
 .btn-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
 .btn-primary:hover{background:var(--accent-h);border-color:var(--accent-h)}
@@ -459,6 +461,8 @@ html.touch .touch-hint{display:block}
   .fab{display:grid}
   .has-sel .fab{display:none}
   .daystrip{gap:4px;padding:10px 12px 0}
+  /* Day view: the day strip names the day, so the calendar's weekday header would repeat it. */
+  .cal-inner.single .weekdays{display:none}
   .content{padding:10px}
   .cal-scroll{height:calc(100dvh - 240px)}
   .overlay{padding:0;align-items:flex-end}
@@ -922,6 +926,13 @@ document.documentElement.classList.toggle('touch',touchScreen());
 const phone=matchMedia('(max-width:640px)');
 /* The shown week, e.g. "October 12 – 18, 2026"; with short months on a phone, "Oct 12 – 18, 2026". */
 function rangeTitle(short=false){const s=weekStart,e=dateFor(6);if(s.getMonth()===e.getMonth())return (short?MON:MONL)[s.getMonth()]+' '+s.getDate()+' – '+e.getDate()+', '+e.getFullYear();return MON[s.getMonth()]+' '+s.getDate()+' – '+MON[e.getMonth()]+' '+e.getDate()+', '+e.getFullYear();}
+/* The day shown in Day view, e.g. "Friday, October 23, 2026"; short on a phone, "Fri, Oct 23". */
+function dayTitle(short=false){const d=dateFor(focusDay);return short?WD[focusDay]+', '+MON[d.getMonth()]+' '+d.getDate():WDL[focusDay]+', '+MONL[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();}
+/* What the top bar's title names: the shown day in Day view, the week's range in Week view and
+   when printing, which prints the whole week. */
+function viewTitle(short=false){return dayMode&&!printing?dayTitle(short):rangeTitle(short);}
+/* Whether today is what's shown: the day itself in Day view, its week in Week view. */
+function showingToday(){const now=new Date();if(key(weekStart)!==key(monday(now)))return false;return !dayMode||focusDay===(now.getDay()+6)%7;}
 function isoWeek(d){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y0)/MS+1)/7);}
 function dayList(days){if(days.length===7)return 'every day';const runs=[];let a=days[0],prev=days[0];for(let i=1;i<=days.length;i++){const d=days[i];if(d===prev+1){prev=d;continue;}runs.push(prev-a>=2?WD[a]+'–'+WD[prev]:(prev===a?WD[a]:WD[a]+', '+WD[prev]));a=d;prev=d;}return runs.join(', ');}
 function escapeHtml(str){return String(str).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
@@ -967,7 +978,9 @@ function workRange(week){if(!week.length)return [WORK_START,WORK_END];let s=DAY_
 function fitHours(){
   const root=document.documentElement;
   if(rangeMode!=='work'||printing){root.style.removeProperty('--hour');return;}
-  const sc=$('calendar-scroll');const head=Math.max(44,$('weekdays').offsetHeight);const avail=sc.clientHeight-head-4;
+  // A phone's Day view has no weekday header (the day strip names the day); read from the state,
+  // since this runs before renderCalendar marks the calendar single.
+  const sc=$('calendar-scroll');const head=dayMode&&phone.matches?0:Math.max(44,$('weekdays').offsetHeight);const avail=sc.clientHeight-head-4;
   if(avail<200){root.style.removeProperty('--hour');return;}
   root.style.setProperty('--hour',clamp(Math.floor(avail/((viewEnd-viewStart)/60)),18,72)+'px');
 }
@@ -1004,9 +1017,12 @@ function render(){
   const week=thisWeekBlocks();
   pruneSelection();
   [viewStart,viewEnd]=computeRange(week);
-  $('week-title').textContent=rangeTitle(phone.matches);
-  document.title='Daymark · '+rangeTitle();
-  $('today').disabled=key(weekStart)===key(monday(new Date()));
+  // In Day view the title, the arrows and Today are about the shown day; in Week view, the week.
+  $('week-title').textContent=viewTitle(phone.matches);
+  document.title='Daymark · '+viewTitle();
+  const unit=dayMode?'day':'week';
+  [['prev','Previous '+unit],['next','Next '+unit]].forEach(([id,label])=>{$(id).setAttribute('aria-label',label);$(id).title=label;});
+  $('today').disabled=showingToday();
   $('view-week').setAttribute('aria-pressed',String(!dayMode));
   $('view-day').setAttribute('aria-pressed',String(dayMode));
   const [ws,we]=workRange(week);
@@ -1073,7 +1089,7 @@ function renderCalendar(week,perDay,cap){
   const todayK=key(new Date());const showWeek=!dayMode||printing;const days=showWeek?[0,1,2,3,4,5,6]:[focusDay];
   const inner=$('calendar-inner');inner.style.setProperty('--cols',days.length);inner.classList.toggle('single',!showWeek);
   inner.style.setProperty('--grid-h',at(viewEnd-viewStart));
-  $('cal-card').setAttribute('aria-label','Calendar, '+rangeTitle());
+  $('cal-card').setAttribute('aria-label','Calendar, '+viewTitle());
   const wd=$('weekdays');wd.innerHTML=`<div class="wk-label">W${isoWeek(weekStart)}</div>`;
   days.forEach(d=>{
     const date=dateFor(d);const isToday=key(date)===todayK;
@@ -1731,8 +1747,9 @@ function stepView(dir){if(dayMode){let d=focusDay+dir;if(d<0){shiftWeek(-1);d=6;
 function replaceWeek(newBlocks,msg){const snap=snapshot();const dates=weekDates();blocks=blocks.filter(b=>!dates.includes(b.date)).concat(newBlocks);clearSelection();save();render();showToast(msg,{undo:snap});}
 function copyPrevious(){const dates=weekDates();const prev=blocks.filter(b=>dates.includes(offsetKey(b.date,7)));if(!prev.length){showToast('Last week has no blocks to copy');return;}replaceWeek(prev.map(b=>({...b,id:uid(),date:offsetKey(b.date,7)})),`Copied ${prev.length} blocks from last week`);}
 function loadSample(){replaceWeek(sampleWeek(),'Example week loaded');}
-$('prev').addEventListener('click',()=>{shiftWeek(-1);clearSelection();save();render();});
-$('next').addEventListener('click',()=>{shiftWeek(1);clearSelection();save();render();});
+// A day at a time in Day view, a week in Week view, as ← and → (stepView).
+$('prev').addEventListener('click',()=>stepView(-1));
+$('next').addEventListener('click',()=>stepView(1));
 $('today').addEventListener('click',goToday);
 $('month-prev').addEventListener('click',()=>{const thu=dateFor(3);goWeek(new Date(thu.getFullYear(),thu.getMonth()-1,4));});
 $('month-next').addEventListener('click',()=>{const thu=dateFor(3);goWeek(new Date(thu.getFullYear(),thu.getMonth()+1,4));});
@@ -1763,7 +1780,7 @@ $('nav-open').addEventListener('click',toggleSidebar);
 $('rail-toggle').addEventListener('click',toggleRail);
 narrowNav.addEventListener('change',()=>{$('app').classList.remove('nav-open');applyLayout();});
 // Only the title changes with a phone's width; a redraw now could pull a dragged block away.
-phone.addEventListener('change',e=>{$('week-title').textContent=rangeTitle(e.matches);});
+phone.addEventListener('change',e=>{$('week-title').textContent=viewTitle(e.matches);});
 // On a phone, the summary's list of categories folds away until asked for.
 $('cat-toggle').addEventListener('click',()=>{const open=$('cat-breakdown').classList.toggle('open');$('cat-toggle').setAttribute('aria-expanded',String(open));});
 /* The top bar's menu of the week actions card's buttons (on a phone), each pressing its button with
