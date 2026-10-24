@@ -1412,7 +1412,7 @@ function selectedBlocks(){return inTimeOrder(blocks.filter(b=>selected.has(b.id)
 function actsOnSelection(id){if(!selected.size||(id!==null&&!selected.has(id)))return false;return selected.size>=2||selectMode;}
 function clearsSelection(){return selected.size>=2||selectMode;}
 function clearSelection(){selected.clear();anchorId=null;selectMode=false;overlayClosed('select');}
-function pruneSelection(){const drawn=new Set(drawnBlocks().map(b=>b.id));selected=new Set([...selected].filter(id=>drawn.has(id)));if(anchorId!==null&&!drawn.has(anchorId))anchorId=null;}
+function pruneSelection(){const drawn=new Set(drawnBlocks().map(b=>b.id));selected=new Set([...selected].filter(id=>drawn.has(id)));if(anchorId!==null&&!drawn.has(anchorId))anchorId=null;if(selectMode&&!selected.size)clearSelection();}
 function showSelection(){document.querySelectorAll('.event[data-id]').forEach(el=>{const sel=selected.has(el.dataset.id);el.classList.toggle('selected',sel);const b=blocks.find(x=>x.id===el.dataset.id);if(b&&!el.classList.contains('orig'))el.setAttribute('aria-label',blockLabel(b,sel));});renderSelectBar();}
 function selectOnly(id){selected=new Set([id]);anchorId=id;showSelection();}
 function rangeBetween(list,from,to){const order=inTimeOrder(list).map(b=>b.id);const j=order.indexOf(to);if(j<0)return [];const i=from===null?-1:order.indexOf(from);if(i<0)return [to];return order.slice(Math.min(i,j),Math.max(i,j)+1);}
