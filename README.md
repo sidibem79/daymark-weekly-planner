@@ -10,8 +10,6 @@ A free, simple weekly planner for time blocking. Give every hour a job, see wher
 
 I learned time blocking in a time management training and did it by hand every week, on paper. It worked. Then life got busy and I stopped. I built this to make the habit easier to come back to.
 
-— Mahmoudou Sidibe
-
 ## How to use it
 
 1. **Block your week.** Click or drag on empty time to add a block, then give it a name and a category.
@@ -44,4 +42,4 @@ After deployment, visit the landing page and planner and check GA4 Realtime or T
 
 ## License
 
-[MIT](LICENSE) © 2026 Mahmoudou Sidibe. You're free to use, share and change it.
+[MIT](LICENSE) © 2026 Quebec Mobile. You're free to use, share and change it.
