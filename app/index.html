@@ -1202,7 +1202,7 @@ function render(){
   [viewStart,viewEnd]=computeRange(week);
   // In Day view the title, the arrows and Today are about the shown day; in Week view, the week.
   $('week-title').textContent=viewTitle(phone.matches);
-  document.title='Daymark · '+viewTitle();
+  document.title='Daymark Weekly Planner · '+viewTitle();
   const unit=dayMode?'day':'week';
   [['prev','Previous '+unit],['next','Next '+unit]].forEach(([id,label])=>{$(id).setAttribute('aria-label',label);$(id).title=label;});
   $('today').disabled=showingToday();
@@ -2072,7 +2072,7 @@ $('nav-open').addEventListener('click',toggleSidebar);
 $('rail-toggle').addEventListener('click',toggleRail);
 narrowNav.addEventListener('change',()=>{$('app').classList.remove('nav-open');applyLayout();overlayClosed('nav');});
 // Only the title changes with a phone's width; a redraw now could pull a dragged block away.
-phone.addEventListener('change',e=>{$('week-title').textContent=viewTitle(e.matches);document.title='Daymark · '+viewTitle();});
+phone.addEventListener('change',e=>{$('week-title').textContent=viewTitle(e.matches);document.title='Daymark Weekly Planner · '+viewTitle();});
 // On a phone, the summary's list of categories folds away until asked for.
 $('cat-toggle').addEventListener('click',()=>{const open=$('cat-breakdown').classList.toggle('open');$('cat-toggle').setAttribute('aria-expanded',String(open));});
 /* The top bar's menu of the week actions card's buttons (on a phone), each pressing its button with
