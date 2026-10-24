@@ -2018,6 +2018,7 @@ $('category-form').addEventListener('submit',e=>{
   const added=catAddNew?keep.filter(c=>c.isNew).pop():null;
   save();$('category-overlay').classList.remove('open');overlayClosed('categories');
   if($('overlay').classList.contains('open')){if(added&&categories.some(c=>c.id===added.id))editorCat=added.id;else if(!categories.some(c=>c.id===editorCat))editorCat=categories[0].id;renderEditorCats();$('cat-field').focus();}
+  else $('manage-categories').focus();
   render();showToast('Categories updated',{undo:snap});
 });
 $('manage-categories').addEventListener('click',()=>openCategoryManager());
@@ -2220,12 +2221,17 @@ $('single-keys').addEventListener('change',e=>{singleKeys=e.target.checked;save(
 for(const st of ['edge','solid'])$('look-'+st).addEventListener('change',()=>{blockStyle=st;save();render();});
 
 /* ---------- keyboard ---------- */
+// What Tab reaches in a dialog: not disabled, and nothing around it hidden.
+function tabStops(root){return [...root.querySelectorAll('button,a[href],input,select,textarea,summary,[tabindex]')].filter(el=>{if(el.disabled||(el.hasAttribute('tabindex')&&el.tabIndex<0))return false;for(let x=el;x&&x!==root;x=x.parentElement)if(x.hidden||getComputedStyle(x).display==='none')return false;return true;});}
+// Tab and Shift+Tab go round a modal dialog's controls, never out to the page behind it. A list open
+// in it has Tab first (it closes the list).
+function trapTab(e,root){if(e.key!=='Tab'||e.defaultPrevented)return;const stops=tabStops(root);if(!stops.length){e.preventDefault();return;}const i=stops.indexOf(document.activeElement);if(e.shiftKey&&i<=0){e.preventDefault();stops[stops.length-1].focus();}else if(!e.shiftKey&&(i<0||i===stops.length-1)){e.preventDefault();stops[0].focus();}}
 document.addEventListener('keydown',e=>{
   if(ctxOpen){if(e.key==='Escape'){e.preventDefault();closeCtx();ctxFocusBack();}return;}
   if(quick){if(e.key==='Escape'){e.preventDefault();closeQuick();}return;}
-  if($('template-overlay').classList.contains('open')){if(e.key==='Escape'){e.preventDefault();closeTemplates();}return;}
-  if($('category-overlay').classList.contains('open')){if(e.key==='Escape'){e.preventDefault();closeCategoryManager();}return;}
-  if($('overlay').classList.contains('open')){if(e.key==='Escape'){e.preventDefault();closeEditor();}return;}
+  if($('template-overlay').classList.contains('open')){if(e.key==='Escape'){e.preventDefault();closeTemplates();}trapTab(e,$('template-form'));return;}
+  if($('category-overlay').classList.contains('open')){if(e.key==='Escape'){e.preventDefault();closeCategoryManager();}trapTab(e,$('category-form'));return;}
+  if($('overlay').classList.contains('open')){if(e.key==='Escape'){e.preventDefault();closeEditor();}trapTab(e,$('form'));return;}
   if(e.key==='Escape'){if(!$('export-menu').hidden){closeExportMenu();$('export-btn').focus();return;}if($('app').classList.contains('nav-open')){closeNav();$('nav-open').focus();return;}if(selected.size||selectMode)endSelecting();return;}
   const tag=document.activeElement?document.activeElement.tagName:'';
   const typing=['INPUT','TEXTAREA','SELECT'].includes(tag);
