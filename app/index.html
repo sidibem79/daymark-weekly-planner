@@ -92,6 +92,17 @@ svg{flex:none}
 .cat-filter[aria-pressed=false] .dot{background:transparent}
 .cat-filter[aria-pressed=false] .name{color:var(--faint)}
 .cat-filter[aria-pressed=false] .eye{display:block}
+/* The Categories fold away from their heading, and a long list shows its first few until "Show all". */
+.cats-fold{display:flex;align-items:center;gap:6px;min-height:36px;margin-left:-4px;padding:0 8px 0 4px;border:0;border-radius:8px;background:transparent;color:var(--ink);font-weight:600}
+.cats-fold:hover{background:var(--hover)}
+.cats-fold .chev{color:var(--ink3);transition:transform .15s}
+.cats-fold[aria-expanded=false] .chev{transform:rotate(-90deg)}
+.cats-more{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:40px;margin-top:10px;padding:0 12px;border:0;border-radius:10px;background:var(--line2);color:var(--ink2);font-size:13px;font-weight:500}
+.cats-more:hover{background:var(--line)}
+.cats-more[hidden]{display:none}
+.cats-more svg{flex:none;transition:transform .15s}
+.cats-more[aria-expanded=true] svg{transform:rotate(180deg)}
+@media (prefers-reduced-motion:reduce){.cats-fold .chev,.cats-more svg{transition:none}}
 .save-card{margin-top:auto;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);display:flex;flex-direction:column;gap:10px}
 .save-line{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
 .save-line .ok{color:var(--theme-success)}.save-line .warn{color:var(--danger);display:none}
@@ -669,10 +680,13 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
     </section>
     <section aria-labelledby="cats-label">
       <div class="side-head">
-        <h2 id="cats-label">Categories</h2>
+        <h2 id="cats-label"><button class="cats-fold" id="cats-fold" type="button" aria-expanded="true" aria-controls="cats-body"><svg class="chev" aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>Categories</button></h2>
         <button class="link-btn" id="manage-categories" type="button">Edit</button>
       </div>
-      <div class="cat-filters" id="cat-filters"></div>
+      <div class="cats-body" id="cats-body">
+        <div class="cat-filters" id="cat-filters"></div>
+        <button class="cats-more" id="cats-more" type="button" aria-expanded="false" aria-controls="cat-filters" hidden></button>
+      </div>
     </section>
     <section class="block-look" aria-labelledby="block-look-label">
       <div class="side-head"><h2 id="block-look-label">Block color</h2></div>
@@ -1005,6 +1019,10 @@ let singleKeys=true;
 // How blocks show their category's color: Light ('edge') or Filled ('solid'). Kept only once picked
 // (null until then), so a browser that never picks gets whatever the default becomes.
 let blockStyle=null;const DEFAULT_BLOCK_STYLE='edge';
+// The sidebar's Categories: unfolded (catsOpen), and all of them or the first few (catsAll).
+let catsOpen=true,catsAll=false;
+// How many categories show before "Show all"; a list only one longer shows whole.
+const FIRST_FEW=4;
 // The block the keyboard was last on (the calendar's one Tab stop), and where it was, so the nearest
 // one on its day takes its place once it is gone; wantsBlock: the calendar took the focus for want of one.
 let focusId=null, focusAt=null, wantsBlock=false;
@@ -1076,8 +1094,8 @@ function normalizeTemplates(list){return (Array.isArray(list)?list:[]).map(t=>{i
 
 /* ---------- storage ---------- */
 function setSaveStatus(ok){$('save-card').classList.toggle('failed',!ok);$('save-status').textContent=ok?'Saved in this browser':'Not saved in this browser';$('save-note').textContent=ok?'Back up to a file to move your planner to another device.':'Browser storage is blocked here. Use Back up to keep your changes.';}
-function save(){try{localStorage.setItem(storageKey,JSON.stringify({version:4,selectedWeek:key(weekStart),sidebarCollapsed,railCollapsed,dayMode,hours:rangeMode,catsV2:true,hiddenCats:[...hiddenCats],singleKeys,blockStyle:blockStyle||undefined,templates,categories,blocks}));setSaveStatus(true);return true;}catch(e){setSaveStatus(false);return false;}}
-function bootstrap(){try{const raw=localStorage.getItem(storageKey);if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed)){categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=normalizeBlocks(parsed);}else{categories=normalizeCategories(parsed.categories);blocks=normalizeBlocks(parsed.blocks);if(parsed.selectedWeek)weekStart=monday(fromKey(parsed.selectedWeek));sidebarCollapsed=!!parsed.sidebarCollapsed;railCollapsed=!!parsed.railCollapsed;templates=normalizeTemplates(parsed.templates);dayMode=typeof parsed.dayMode==='boolean'?parsed.dayMode:dayMode;if(parsed.hours==='full'||parsed.hours==='work')rangeMode=parsed.hours;if(typeof parsed.singleKeys==='boolean')singleKeys=parsed.singleKeys;if(parsed.blockStyle==='edge'||parsed.blockStyle==='solid')blockStyle=parsed.blockStyle;if(Array.isArray(parsed.hiddenCats)){const ids=categoryIds();hiddenCats=new Set(parsed.hiddenCats.filter(id=>ids.has(id)));}if(!parsed.catsV2)migrateCategories();}}else{categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=sampleWeek();}}catch(e){categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=sampleWeek();}save();}
+function save(){try{localStorage.setItem(storageKey,JSON.stringify({version:4,selectedWeek:key(weekStart),sidebarCollapsed,railCollapsed,dayMode,hours:rangeMode,catsV2:true,hiddenCats:[...hiddenCats],singleKeys,blockStyle:blockStyle||undefined,catsOpen,catsAll,templates,categories,blocks}));setSaveStatus(true);return true;}catch(e){setSaveStatus(false);return false;}}
+function bootstrap(){try{const raw=localStorage.getItem(storageKey);if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed)){categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=normalizeBlocks(parsed);}else{categories=normalizeCategories(parsed.categories);blocks=normalizeBlocks(parsed.blocks);if(parsed.selectedWeek)weekStart=monday(fromKey(parsed.selectedWeek));sidebarCollapsed=!!parsed.sidebarCollapsed;railCollapsed=!!parsed.railCollapsed;templates=normalizeTemplates(parsed.templates);dayMode=typeof parsed.dayMode==='boolean'?parsed.dayMode:dayMode;if(parsed.hours==='full'||parsed.hours==='work')rangeMode=parsed.hours;if(typeof parsed.singleKeys==='boolean')singleKeys=parsed.singleKeys;if(parsed.blockStyle==='edge'||parsed.blockStyle==='solid')blockStyle=parsed.blockStyle;catsOpen=parsed.catsOpen!==false;catsAll=parsed.catsAll===true;if(Array.isArray(parsed.hiddenCats)){const ids=categoryIds();hiddenCats=new Set(parsed.hiddenCats.filter(id=>ids.has(id)));}if(!parsed.catsV2)migrateCategories();}}else{categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=sampleWeek();}}catch(e){categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=sampleWeek();}save();}
 
 /* ---------- toast + undo ---------- */
 function showToast(msg,opts={}){
@@ -1254,7 +1272,9 @@ function renderMonth(){
 }
 function renderCatFilters(){
   const wrap=$('cat-filters');wrap.innerHTML='';
-  categories.forEach(c=>{
+  $('cats-fold').setAttribute('aria-expanded',String(catsOpen));$('cats-body').hidden=!catsOpen;
+  const long=categories.length>FIRST_FEW+1;
+  (catsAll||!long?categories:categories.slice(0,FIRST_FEW)).forEach(c=>{
     const vis=!hiddenCats.has(c.id);
     const b=document.createElement('button');b.type='button';b.className='cat-filter';
     b.setAttribute('aria-pressed',String(vis));b.title=(vis?'Hide ':'Show ')+c.name;
@@ -1263,6 +1283,11 @@ function renderCatFilters(){
     b.addEventListener('click',()=>{if(vis)hiddenCats.add(c.id);else hiddenCats.delete(c.id);save();render();});
     wrap.appendChild(b);
   });
+  // "Show all", saying how many there are and how many of the rest are hidden; or "Show fewer".
+  const more=$('cats-more');more.hidden=!long;more.setAttribute('aria-expanded',String(catsAll));
+  const hiddenInRest=categories.slice(FIRST_FEW).filter(c=>hiddenCats.has(c.id)).length;
+  const label=catsAll?'Show fewer':hiddenInRest?`Show all ${categories.length} · ${hiddenInRest} hidden`:`Show all ${categories.length} categories`;
+  more.innerHTML=`<span>${label}</span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
 }
 function renderDayStrip(perDay,cap){
   const strip=$('daystrip');strip.hidden=!dayMode;if(!dayMode)return;strip.innerHTML='';const todayK=key(new Date());
@@ -1996,6 +2021,8 @@ $('category-form').addEventListener('submit',e=>{
   render();showToast('Categories updated',{undo:snap});
 });
 $('manage-categories').addEventListener('click',()=>openCategoryManager());
+$('cats-fold').addEventListener('click',()=>{catsOpen=!catsOpen;save();renderCatFilters();});
+$('cats-more').addEventListener('click',()=>{catsAll=!catsAll;save();renderCatFilters();});
 $('close-categories').addEventListener('click',closeCategoryManager);$('cancel-categories').addEventListener('click',closeCategoryManager);
 $('category-overlay').addEventListener('click',e=>{if(e.target===$('category-overlay'))closeCategoryManager();});
 
