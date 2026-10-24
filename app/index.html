@@ -267,6 +267,11 @@ kbd.k{font-family:var(--mono);font-size:11px;padding:1px 5px;border:1px solid va
 .dialog:has(> .dlg-body){overflow:hidden}
 .dialog > .dlg-head,.dialog > .dlg-sub,.dialog > .dlg-foot{flex:none}
 .dialog > .dlg-body{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain}
+/* While an overlay is open the page behind it stays put (lockScroll); a dialog's body and a long menu
+   still scroll, without handing the scroll on to the page at their ends. --lock-gap keeps the room of
+   a scrollbar the page loses meanwhile. */
+html.scroll-lock{overflow:hidden;padding-right:var(--lock-gap,0px)}
+.overlay,.dialog{overscroll-behavior:contain}
 .stack{display:flex;flex-direction:column;gap:8px}
 .field-label{font-size:13px;font-weight:500;color:var(--ink2);padding:0}
 .input{width:100%;height:44px;padding:0 14px;border:1px solid var(--field);border-radius:10px;background:var(--surface);font-size:15px;color:var(--ink)}
@@ -367,9 +372,14 @@ select.input{font-family:var(--mono);font-size:14px;padding:0 12px}
 .pick-foot:hover{background:var(--hover)}
 
 /* Toast + FAB */
-.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,12px);z-index:300;display:flex;align-items:center;gap:14px;padding:8px 8px 8px 16px;background:var(--ink);color:var(--on-accent);border-radius:12px;box-shadow:0 12px 30px color-mix(in srgb,var(--ink) 25%,transparent);font-size:13px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;max-width:calc(100vw - 32px)}
-.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
-.toast-msg{min-height:32px;display:flex;align-items:center}
+/* Centred by margins, not left:50%, which would leave the toast only half the screen and squeeze its
+   message into a narrow column. A message too long for one line with its buttons takes a line of its
+   own, the buttons under it at the right. */
+.toast{position:fixed;left:0;right:0;bottom:24px;width:max-content;max-width:calc(100vw - 32px);margin:0 auto;transform:translateY(12px);z-index:300;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:4px 14px;padding:8px 8px 8px 16px;background:var(--ink);color:var(--on-accent);border-radius:12px;box-shadow:0 12px 30px color-mix(in srgb,var(--ink) 25%,transparent);font-size:13px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
+.toast.show{opacity:1;transform:none;pointer-events:auto}
+.toast-msg{flex:1 1 auto;min-width:0;min-height:32px;padding-right:8px;display:flex;align-items:center;overflow-wrap:anywhere}
+/* With no Undo, the close button alone stays beside the message, which wraps next to it. */
+.toast:has(#toast-undo[hidden]) .toast-msg{flex-basis:0}
 .toast button{height:32px;border:0;border-radius:8px;background:color-mix(in srgb,var(--on-accent) 12%,transparent);color:var(--on-accent);font-size:13px;font-weight:600;padding:0 12px}
 .toast button:hover{background:color-mix(in srgb,var(--on-accent) 20%,transparent)}
 .toast .x{background:transparent;color:var(--accent-soft);width:32px;padding:0;display:grid;place-items:center}
@@ -1051,6 +1061,49 @@ function redo(){if(active)return;const item=redoStack.pop();if(!item){showToast(
 $('toast-undo').addEventListener('click',()=>{if($('toast-undo').dataset.action==='redo')redo();else undo();});
 $('toast-close').addEventListener('click',hideToast);
 
+/* ---------- Back closes what's open ---------- */
+// Menus, quick add, the editor's short lists, the dialogs, the phone's side menu and selecting on a phone are overlays. While any but selecting is open the
+// page behind it doesn't scroll, and the page holds one extra history entry, so a phone's Back button (or the browser's) closes the topmost
+// overlay rather than leaving the planner. One that closes any other way (Done, Cancel, Escape, a tap outside, a menu item) gives the
+// entry back with history.back(), and the popstate that follows closes nothing. Overlays opened one from another (a menu's Edit, then
+// the editor) share the entry: it is settled once the event that swapped them is over.
+const overlays=[]; // the open overlays, the topmost last: {name, close}
+// An entry left by an overlay open before a reload is the page's own now: nothing is open over it.
+if(history.state&&history.state.daymarkOverlay)history.replaceState(null,'');
+let backEntry=false; // whether the current history entry is the overlays' own
+let backPending=0; // history.back() calls whose popstate is still to come, and closes nothing
+let backTimer=0;
+function overlayOpened(name,close){if(!overlays.some(o=>o.name===name))overlays.push({name,close});settleOverlays();}
+function overlayClosed(name){const i=overlays.findIndex(o=>o.name===name);if(i<0)return;overlays.splice(i,1);settleOverlays();}
+function settleOverlays(){
+  lockScroll(overlays.some(o=>o.name!=='select')); // selecting on a phone takes Back, but the calendar still scrolls
+  if(backTimer)return;
+  backTimer=setTimeout(()=>{
+    backTimer=0;
+    // A history.back() under way settles again at its popstate: a pushState before then would race it.
+    if(backPending)return;
+    if(overlays.length&&!backEntry){history.pushState({daymarkOverlay:true},'');backEntry=true;}
+    else if(!overlays.length&&backEntry){backEntry=false;backPending++;history.back();}
+  },0);
+}
+addEventListener('popstate',e=>{
+  backEntry=!!(e.state&&e.state.daymarkOverlay);
+  if(backPending){backPending--;settleOverlays();return;}
+  // Back: the topmost overlay closes as if dismissed; any under it take a new entry (settleOverlays).
+  const top=overlays[overlays.length-1];if(!top)return;
+  top.close();overlayClosed(top.name);
+});
+/* The page behind an overlay stays where it is: the document doesn't scroll (html.scroll-lock), and its
+   place is put back should anything have moved it meanwhile. */
+let lockedAt=null;
+function lockScroll(on){
+  const root=document.documentElement;
+  if(on===!!lockedAt)return;
+  if(on){lockedAt={x:scrollX,y:scrollY};root.style.setProperty('--lock-gap',Math.max(0,innerWidth-root.clientWidth)+'px');root.classList.add('scroll-lock');return;}
+  const at=lockedAt;lockedAt=null;root.classList.remove('scroll-lock');root.style.removeProperty('--lock-gap');
+  if(scrollX!==at.x||scrollY!==at.y)scrollTo(at.x,at.y);
+}
+
 /* ---------- view range ---------- */
 function workRange(week){if(!week.length)return [WORK_START,WORK_END];let s=DAY_MIN,e=0;week.forEach(b=>{s=Math.min(s,Math.floor(b.start/60)*60);e=Math.max(e,Math.ceil((b.start+b.duration)/60)*60);});if(e-s<180){e=Math.min(DAY_MIN,s+180);s=Math.max(0,e-180);}return [s,e];}
 function fitHours(){
@@ -1358,14 +1411,14 @@ function selectedBlocks(){return inTimeOrder(blocks.filter(b=>selected.has(b.id)
 /* Whether an action on block id (or on none in particular, when null) is for the whole selection: several selected and it is one of them, or selecting on a phone. */
 function actsOnSelection(id){if(!selected.size||(id!==null&&!selected.has(id)))return false;return selected.size>=2||selectMode;}
 function clearsSelection(){return selected.size>=2||selectMode;}
-function clearSelection(){selected.clear();anchorId=null;selectMode=false;}
-function pruneSelection(){const drawn=new Set(drawnBlocks().map(b=>b.id));selected=new Set([...selected].filter(id=>drawn.has(id)));if(anchorId!==null&&!drawn.has(anchorId))anchorId=null;}
+function clearSelection(){selected.clear();anchorId=null;selectMode=false;overlayClosed('select');}
+function pruneSelection(){const drawn=new Set(drawnBlocks().map(b=>b.id));selected=new Set([...selected].filter(id=>drawn.has(id)));if(anchorId!==null&&!drawn.has(anchorId))anchorId=null;if(selectMode&&!selected.size)clearSelection();}
 function showSelection(){document.querySelectorAll('.event[data-id]').forEach(el=>{const sel=selected.has(el.dataset.id);el.classList.toggle('selected',sel);const b=blocks.find(x=>x.id===el.dataset.id);if(b&&!el.classList.contains('orig'))el.setAttribute('aria-label',blockLabel(b,sel));});renderSelectBar();}
 function selectOnly(id){selected=new Set([id]);anchorId=id;showSelection();}
 function rangeBetween(list,from,to){const order=inTimeOrder(list).map(b=>b.id);const j=order.indexOf(to);if(j<0)return [];const i=from===null?-1:order.indexOf(from);if(i<0)return [to];return order.slice(Math.min(i,j),Math.max(i,j)+1);}
 function clickSelect(id,range){if(range)rangeBetween(drawnBlocks(),anchorId,id).forEach(x=>selected.add(x));else if(selected.has(id))selected.delete(id);else selected.add(id);anchorId=id;showSelection();}
-function tapSelect(id){if(selected.has(id))selected.delete(id);else selected.add(id);anchorId=id;if(!selected.size)selectMode=false;showSelection();}
-function startSelecting(id){if(!selectMode){selectMode=true;selected=new Set();}selected.add(id);anchorId=id;showSelection();}
+function tapSelect(id){if(selected.has(id))selected.delete(id);else selected.add(id);anchorId=id;if(!selected.size){selectMode=false;overlayClosed('select');}showSelection();}
+function startSelecting(id){if(!selectMode){selectMode=true;selected=new Set();overlayOpened('select',endSelecting);}selected.add(id);anchorId=id;showSelection();}
 function endSelecting(){clearSelection();showSelection();}
 /* The nearest shift to the one asked that keeps every block inside the shown week and inside its own day, so a group keeps its shape. */
 function clampShift(list,sh){if(!list.length)return {days:0,minutes:0};const ds=list.map(b=>dayIndex(b.date));const lowD=-Math.min(...ds),highD=6-Math.max(...ds);const lowM=-Math.min(...list.map(b=>b.start)),highM=Math.min(...list.map(b=>DAY_MIN-b.start-b.duration));return {days:lowD>highD?0:clamp(sh.days,lowD,highD),minutes:lowM>highM?0:clamp(sh.minutes,lowM,highM)};}
@@ -1456,8 +1509,9 @@ function openQuick(day,start,end){
   q.style.left=left+'px';q.style.top=top+'px';
   // On a touch screen the keyboard waits until the title is tapped.
   (touchScreen()?q:$('quick-title')).focus({preventScroll:true});
+  overlayOpened('quick',closeQuick);
 }
-function closeQuick(){if(!quick&&!draftEl)return;const hadFocus=$('quick').contains(document.activeElement);$('quick').hidden=true;if(hadFocus)$('calendar-scroll').focus({preventScroll:true});if(draftEl){draftEl.remove();draftEl=null;}quick=null;}
+function closeQuick(){if(!quick&&!draftEl)return;const hadFocus=$('quick').contains(document.activeElement);$('quick').hidden=true;if(hadFocus)$('calendar-scroll').focus({preventScroll:true});if(draftEl){draftEl.remove();draftEl=null;}quick=null;overlayClosed('quick');}
 /* Where a quick add chip leaves the focus, the chip itself being redrawn: the title, ready to type
    into, or on a touch screen the card, so the keyboard stays down. */
 function quickFocus(){(touchScreen()?$('quick'):$('quick-title')).focus({preventScroll:true});}
@@ -1507,9 +1561,10 @@ function openCtx(x,y,items){
   m.hidden=false;ctxOpen=true;
   const w=m.offsetWidth,h=m.offsetHeight;m.style.left=clamp(x,8,innerWidth-w-8)+'px';m.style.top=(y+h>innerHeight-8?Math.max(8,y-h):y)+'px';
   const first=m.querySelector('button:not(:disabled)');if(first)first.focus({preventScroll:true});
+  overlayOpened('menu',closeCtx);
 }
 /* Closed by a scroll or a resize as well: the focus mustn't stay in the hidden menu. */
-function closeCtx(){if(!ctxOpen)return;const hadFocus=$('ctx').contains(document.activeElement);$('ctx').hidden=true;ctxOpen=false;$('week-menu').setAttribute('aria-expanded','false');if(hadFocus)ctxFocusBack();}
+function closeCtx(){if(!ctxOpen)return;const hadFocus=$('ctx').contains(document.activeElement);$('ctx').hidden=true;ctxOpen=false;$('week-menu').setAttribute('aria-expanded','false');if(hadFocus)ctxFocusBack();overlayClosed('menu');}
 /* The focus goes back to what opened the menu, or to its block when that was redrawn, or to the calendar after the menu for empty time; before an item's action too, so a dialog it opens returns the focus there. */
 function ctxFocusBack(){if(ctxReturn&&document.contains(ctxReturn))ctxReturn.focus();else if(ctxReturn&&ctxReturn.matches('.event[data-id]'))refocusBlock(ctxReturn.dataset.id);else if(!ctxReturn)focusCalendar();}
 $('ctx').addEventListener('keydown',e=>{
@@ -1550,8 +1605,8 @@ let resizeTimer=null;
 window.addEventListener('resize',()=>{closeCtx();measureEmptyBar();if(rangeMode==='work'&&!quick&&!active&&!creating&&!boxing){clearTimeout(resizeTimer);resizeTimer=setTimeout(render,150);}});
 
 /* ---------- week templates ---------- */
-function openTemplates(){closeExportMenu();lastFocus=document.activeElement;$('template-name').value='';$('template-hint').textContent='';renderTemplates();$('template-overlay').classList.add('open');setTimeout(()=>$('template-name').focus(),0);}
-function closeTemplates(){$('template-overlay').classList.remove('open');if(lastFocus&&document.contains(lastFocus))lastFocus.focus();}
+function openTemplates(){closeExportMenu();lastFocus=document.activeElement;$('template-name').value='';$('template-hint').textContent='';renderTemplates();$('template-overlay').classList.add('open');overlayOpened('templates',closeTemplates);setTimeout(()=>$('template-name').focus(),0);}
+function closeTemplates(){$('template-overlay').classList.remove('open');overlayClosed('templates');if(lastFocus&&document.contains(lastFocus))lastFocus.focus();}
 function renderTemplates(){
   const wrap=$('template-list');wrap.innerHTML='';
   if(!templates.length){wrap.innerHTML='<p class="foot-hint" style="margin:0">No templates yet. Plan a week you like, then save it above.</p>';return;}
@@ -1616,7 +1671,7 @@ window.addEventListener('pointermove',e=>{
 });
 function finishDrag(e){
   // While selecting on a phone, a tap adds or takes out the block; otherwise it opens it.
-  if(pressing&&e.pointerId===pressing.pid){clearTimeout(pressing.timer);const p=pressing;pressing=null;lastPointerUp=Date.now();if(selectMode)tapSelect(p.b.id);else if(!p.resize)openEditor(p.b.id);return;}
+  if(pressing&&e.pointerId===pressing.pid){clearTimeout(pressing.timer);const p=pressing;pressing=null;lastPointerUp=Date.now();if(selectMode)tapSelect(p.b.id);else if(!p.resize){eatTapClick();openEditor(p.b.id);}return;}
   if(creating&&e.pointerId===creating.pid){finishCreate();return;}
   if(boxing&&e.pointerId===boxing.pid){finishBox();return;}
   if(!active||e.pointerId!==active.pid)return;const a=active;active=null;lastPointerUp=Date.now();const b=blocks.find(x=>x.id===a.id);if(!b){render();return;}
@@ -1637,6 +1692,17 @@ function finishDrag(e){
   showToast(a.resize?`${b.title}: now ${durLabel(b.duration)}`:`${b.title} moved to ${WD[dayIndex(b.date)]} ${time(b.start)}`,{undo:snap});
 }
 window.addEventListener('pointerup',finishDrag);
+/* A tap that opens the editor on its pointerup (finishDrag) is still to make its mouse events and click,
+   which land on whatever now lies under the finger: a day or time field, opening its list, or the dim
+   backdrop, closing the editor again. Cancelling the tap's touchend stops them, and nothing more is
+   watched for, so the next real tap counts. Where the touchend came first, a click straight after is
+   dropped instead. */
+function eatTapClick(){
+  const stop=new AbortController();
+  addEventListener('touchend',e=>{if(e.cancelable){e.preventDefault();stop.abort();}},{capture:true,passive:false,signal:stop.signal});
+  addEventListener('click',e=>{e.preventDefault();e.stopPropagation();stop.abort();},{capture:true,signal:stop.signal});
+  setTimeout(()=>stop.abort(),350);
+}
 document.addEventListener('touchmove',e=>{if(active&&active.touch)e.preventDefault();},{passive:false});
 window.addEventListener('pointercancel',e=>{if(pressing&&e.pointerId===pressing.pid){clearTimeout(pressing.timer);pressing=null;}if(creating&&e.pointerId===creating.pid){if(creating.el)creating.el.remove();creating=null;}if(boxing&&e.pointerId===boxing.pid){boxing.el.remove();boxing=null;}if(active&&e.pointerId===active.pid){active=null;render();}});
 
@@ -1668,11 +1734,11 @@ function openEditor(id,preset={}){
   $('delete').hidden=!found;$('error').textContent='';
   $('done-wrap').hidden=!found;$('task-done').checked=!!(found&&found.done);showDone();
   renderEditorCats();renderWhen();updateEditor();
-  $('overlay').classList.add('open');
+  $('overlay').classList.add('open');overlayOpened('editor',closeEditor);
   // On a touch screen the keyboard waits until a field is tapped; elsewhere, type the title at once.
   setTimeout(()=>(touchScreen()?$('form'):$('task-title')).focus({preventScroll:true}),0);
 }
-function closeEditor(){closePicker();$('overlay').classList.remove('open');editId=null;if(lastFocus&&document.contains(lastFocus))lastFocus.focus();else if(lastFocus&&lastFocus.matches&&lastFocus.matches('.event[data-id]'))refocusBlock(lastFocus.dataset.id);}
+function closeEditor(){closePicker();$('overlay').classList.remove('open');overlayClosed('editor');editId=null;if(lastFocus&&document.contains(lastFocus))lastFocus.focus();else if(lastFocus&&lastFocus.matches&&lastFocus.matches('.event[data-id]'))refocusBlock(lastFocus.dataset.id);}
 /* Draws the chosen category everywhere the editor shows it: its field, the header's tint and Done ring, and the block's own day in "Also on". */
 function renderEditorCats(){
   const c=categories.find(x=>x.id===editorCat);
@@ -1754,8 +1820,8 @@ function picker(button,host,config){
   // Under the button, or over it when there is more room above.
   function place(){const r=button.getBoundingClientRect();const below=innerHeight-r.bottom-12,above=r.top-12;menu.style.maxHeight=Math.min(280,Math.max(below,above))+'px';menu.style.minWidth=Math.max(r.width,180)+'px';menu.style.left=Math.max(8,Math.min(r.left,innerWidth-menu.offsetWidth-8))+'px';const h=menu.offsetHeight;menu.style.top=(h<=below||below>=above?r.bottom+4:r.top-4-h)+'px';}
   function focusOption(el){if(!el)return;options().forEach(o=>{o.tabIndex=o===el?0:-1;});if(foot)foot.tabIndex=foot===el?0:-1;el.focus();el.scrollIntoView({block:'nearest'});}
-  function open(){closePicker();draw();menu.hidden=false;button.setAttribute('aria-expanded','true');place();const sel=list.querySelector('[tabindex="0"]');if(sel){sel.focus();sel.scrollIntoView({block:'center'});}document.addEventListener('pointerdown',outside,true);document.addEventListener('scroll',scrolled,true);addEventListener('resize',resized);pickerClose=close;}
-  function close(focusButton=true){if(menu.hidden)return;menu.hidden=true;button.setAttribute('aria-expanded','false');document.removeEventListener('pointerdown',outside,true);document.removeEventListener('scroll',scrolled,true);removeEventListener('resize',resized);if(pickerClose===close)pickerClose=null;if(focusButton)button.focus();}
+  function open(){closePicker();draw();menu.hidden=false;button.setAttribute('aria-expanded','true');place();const sel=list.querySelector('[tabindex="0"]');if(sel){sel.focus();sel.scrollIntoView({block:'center'});}document.addEventListener('pointerdown',outside,true);document.addEventListener('scroll',scrolled,true);addEventListener('resize',resized);pickerClose=close;overlayOpened('list',()=>close());}
+  function close(focusButton=true){if(menu.hidden)return;menu.hidden=true;button.setAttribute('aria-expanded','false');document.removeEventListener('pointerdown',outside,true);document.removeEventListener('scroll',scrolled,true);removeEventListener('resize',resized);if(pickerClose===close)pickerClose=null;overlayClosed('list');if(focusButton)button.focus();}
   function outside(e){if(!menu.contains(e.target)&&!button.contains(e.target))close(false);}
   function scrolled(e){if(!menu.contains(e.target))close(false);}
   function resized(){close(false);}
@@ -1791,10 +1857,10 @@ function openCategoryManager(opts={}){
   closeNav();catAddNew=!!opts.addNew;
   catDraft=categories.map(c=>({...c,deleted:false,moveTo:'',isNew:false}));
   if(catAddNew)catDraft.push(newDraft());
-  $('category-error').textContent='';renderCatRows();$('category-overlay').classList.add('open');
+  $('category-error').textContent='';renderCatRows();$('category-overlay').classList.add('open');overlayOpened('categories',closeCategoryManager);
   setTimeout(()=>{const inputs=document.querySelectorAll('#category-editor .cat-name');const target=catAddNew?inputs[inputs.length-1]:inputs[0];if(target)target.focus();},0);
 }
-function closeCategoryManager(){$('category-overlay').classList.remove('open');if($('overlay').classList.contains('open'))$('cat-field').focus();else $('manage-categories').focus();}
+function closeCategoryManager(){$('category-overlay').classList.remove('open');overlayClosed('categories');if($('overlay').classList.contains('open'))$('cat-field').focus();else $('manage-categories').focus();}
 const ICON_GRIP='<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg>';
 const ICON_UP='<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>';
 const ICON_DOWN='<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
@@ -1876,7 +1942,7 @@ $('category-form').addEventListener('submit',e=>{
   blocks=blocks.map(b=>remap[b.cat]?{...b,cat:remap[b.cat]}:b);
   categories=normalizeCategories(next);blocks=normalizeBlocks(blocks);
   const added=catAddNew?keep.filter(c=>c.isNew).pop():null;
-  save();$('category-overlay').classList.remove('open');
+  save();$('category-overlay').classList.remove('open');overlayClosed('categories');
   if($('overlay').classList.contains('open')){if(added&&categories.some(c=>c.id===added.id))editorCat=added.id;else if(!categories.some(c=>c.id===editorCat))editorCat=categories[0].id;renderEditorCats();$('cat-field').focus();}
   render();showToast('Categories updated',{undo:snap});
 });
@@ -1924,11 +1990,11 @@ $('add').addEventListener('click',()=>openEditor(null,{day:focusDay}));
 $('fab').addEventListener('click',()=>openEditor(null,{day:focusDay}));
 
 /* ---------- nav drawer + export menu ---------- */
-function openNav(){$('app').classList.add('nav-open');applyLayout();$('nav-close').focus();}
-function closeNav(){if(!$('app').classList.contains('nav-open'))return;$('app').classList.remove('nav-open');applyLayout();}
+function openNav(){$('app').classList.add('nav-open');applyLayout();$('nav-close').focus();overlayOpened('nav',()=>{closeNav();$('nav-open').focus();});}
+function closeNav(){if(!$('app').classList.contains('nav-open'))return;$('app').classList.remove('nav-open');applyLayout();overlayClosed('nav');}
 $('nav-open').addEventListener('click',toggleSidebar);
 $('rail-toggle').addEventListener('click',toggleRail);
-narrowNav.addEventListener('change',()=>{$('app').classList.remove('nav-open');applyLayout();});
+narrowNav.addEventListener('change',()=>{$('app').classList.remove('nav-open');applyLayout();overlayClosed('nav');});
 // Only the title changes with a phone's width; a redraw now could pull a dragged block away.
 phone.addEventListener('change',e=>{$('week-title').textContent=viewTitle(e.matches);document.title='Daymark · '+viewTitle();});
 // On a phone, the summary's list of categories folds away until asked for.
@@ -1964,8 +2030,8 @@ $('week-menu').addEventListener('click',()=>{
   addEventListener('scroll',soon,{passive:true});addEventListener('resize',soon);
   if(window.visualViewport){visualViewport.addEventListener('resize',soon);visualViewport.addEventListener('scroll',soon);}
 })();$('nav-close').addEventListener('click',()=>{closeNav();$('nav-open').focus();});$('scrim').addEventListener('click',closeNav);
-function openExportMenu(){$('export-menu').hidden=false;$('export-btn').setAttribute('aria-expanded','true');$('export-menu').querySelector('button').focus();}
-function closeExportMenu(){$('export-menu').hidden=true;$('export-btn').setAttribute('aria-expanded','false');}
+function openExportMenu(){$('export-menu').hidden=false;$('export-btn').setAttribute('aria-expanded','true');$('export-menu').querySelector('button').focus();overlayOpened('export',()=>{closeExportMenu();$('export-btn').focus();});}
+function closeExportMenu(){$('export-menu').hidden=true;$('export-btn').setAttribute('aria-expanded','false');overlayClosed('export');}
 $('export-btn').addEventListener('click',()=>{$('export-menu').hidden?openExportMenu():closeExportMenu();});
 $('export-menu').addEventListener('keydown',e=>{const items=[...$('export-menu').querySelectorAll('button')];const i=items.indexOf(document.activeElement);if(e.key==='ArrowDown'){e.preventDefault();items[(i+1)%items.length].focus();}else if(e.key==='ArrowUp'){e.preventDefault();items[(i-1+items.length)%items.length].focus();}});
 document.addEventListener('click',e=>{if(!e.target.closest('.menu-wrap'))closeExportMenu();});
