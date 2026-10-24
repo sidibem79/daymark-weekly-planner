@@ -4,7 +4,7 @@ A free, simple weekly planner for time blocking. Give every hour a job, see wher
 
 **Open it:** https://www.daymarkweekly.app/
 
-![A week planned in Daymark](media/01-week.webp)
+![A week planned in Daymark Weekly Planner](media/01-week.webp)
 
 ## Why I made it
 
