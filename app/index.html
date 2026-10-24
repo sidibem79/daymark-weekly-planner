@@ -100,6 +100,10 @@ svg{flex:none}
 .save-card p{margin:0;font-size:12px;color:var(--muted);line-height:1.5}
 .save-card .row{display:flex;gap:6px}
 .save-card .btn{flex:1;height:36px;font-size:12px;font-weight:600}
+.save-card .upsell{margin-top:-4px;font-size:11px;line-height:1.4}
+.save-card .upsell a{color:var(--accent-ink);font-weight:500;white-space:nowrap;text-decoration:underline;text-underline-offset:2px;border-radius:2px}
+.save-card .upsell a:hover{color:var(--accent-h)}
+.save-card.failed .upsell{display:none}
 .scrim{display:none}
 
 /* Buttons */
@@ -652,6 +656,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
         <button class="btn" id="save-backup" type="button">Back up</button>
         <button class="btn" id="load-backup" type="button">Restore</button>
       </div>
+      <!-- Pro, in one place: this link goes to the early-access list on the website until Pro goes on sale, then to the Pro sign-up page (https://pro.daymarkweekly.app/). -->
+      <p class="upsell" id="save-upsell">Want your planner on every device? Pro saves it to your account. <a href="https://www.daymarkweekly.app/">Join the early-access list&nbsp;<span aria-hidden="true">→</span></a></p>
     </section>
   </aside>
   <div class="scrim" id="scrim"></div>
