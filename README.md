@@ -26,7 +26,7 @@ There's a one-minute walkthrough video on the [website](https://www.daymarkweekl
 
 ## Your data
 
-Your plan is saved in your own browser, with no account or cloud sync. The hosted site uses Google Analytics for visit statistics and Microsoft Clarity for interaction recordings and heatmaps. Planner text is explicitly masked in Clarity, including blocks, categories, templates, and dialogs. No planner content is passed to custom analytics events. Use **Back up** in the planner to save a copy as a file, and **Restore** to load it on another device.
+Your plan is saved in your own browser, with no account or cloud sync. The hosted site uses Google Analytics for visit statistics and Microsoft Clarity for interaction recordings and heatmaps. Planner text is explicitly masked in Clarity, including blocks, categories, templates, and dialogs. No planner content is passed to custom analytics events. Use **Back up** in the planner to save a copy as a file, and **Restore** to load it on another device. The [privacy policy](https://www.daymarkweekly.app/privacy/) and [terms](https://www.daymarkweekly.app/terms/) have the details.
 
 ## Use it offline
 
