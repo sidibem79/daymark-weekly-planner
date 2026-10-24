@@ -1068,7 +1068,9 @@ $('toast-close').addEventListener('click',hideToast);
 // entry back with history.back(), and the popstate that follows closes nothing. Overlays opened one from another (a menu's Edit, then
 // the editor) share the entry: it is settled once the event that swapped them is over.
 const overlays=[]; // the open overlays, the topmost last: {name, close}
-let backEntry=!!(history.state&&history.state.daymarkOverlay); // whether the current history entry is the overlays' own
+// An entry left by an overlay open before a reload is the page's own now: nothing is open over it.
+if(history.state&&history.state.daymarkOverlay)history.replaceState(null,'');
+let backEntry=false; // whether the current history entry is the overlays' own
 let backPending=0; // history.back() calls whose popstate is still to come, and closes nothing
 let backTimer=0;
 function overlayOpened(name,close){if(!overlays.some(o=>o.name===name))overlays.push({name,close});settleOverlays();}
