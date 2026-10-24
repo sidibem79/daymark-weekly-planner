@@ -595,6 +595,26 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
 .cat-chip[aria-pressed=true],.quick-cat[aria-pressed=true],.dur-chip[aria-pressed=true]{box-shadow:inset 0 -2px var(--accent)}
 .event:focus-visible{outline:2px dashed var(--focus);outline-offset:4px;z-index:5}
 .event.done{opacity:1}
+/* Block color: a light block has its category's color down its left side, drawn inside the block so
+   its corners stay round; a filled one has its text white or dark ink, whichever reads. A done block
+   is paler in both. The selection ring stands off the block on a gap of the page's color, so it shows
+   on a filled block of any color. */
+.block-look .side-head{padding-left:0}
+.look-pick{display:flex;gap:6px}
+.look-opt{position:relative;flex:1;display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink3);font-size:13px;font-weight:500;cursor:pointer}
+.look-opt input{position:absolute;width:1px;height:1px;margin:0;opacity:0;pointer-events:none}
+.look-opt:has(input:checked){border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);color:var(--ink);font-weight:600}
+.look-opt:has(input:focus-visible){outline:2px solid var(--focus);outline-offset:2px}
+.look-swatch{flex:none;position:relative;overflow:hidden;width:22px;height:16px;border-radius:4px}
+.look-swatch.edge{border:1px solid color-mix(in srgb,var(--accent) 34%,var(--surface));background:color-mix(in srgb,var(--accent) 20%,var(--surface))}
+.look-swatch.edge::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.look-swatch.solid{background:var(--accent)}
+.look-hint{margin:8px 0 0;font-size:12px;line-height:1.4;color:var(--muted)}
+.event,.event .time,.event .desc{color:var(--ev-ink,var(--ink))}
+.event.barred::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--bar);pointer-events:none}
+.event.barred.tiny{padding-left:8px}
+.event.selected{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent)}
+.event.lifted{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent),0 10px 28px color-mix(in srgb,var(--ink) 22%,transparent)}
 .ed-also-day[aria-pressed=true]{font-weight:700;text-decoration:underline;text-underline-offset:3px}
 .done-tick:has(input:focus-visible){outline:2px solid var(--focus);outline-offset:3px}
 .ed-title:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
@@ -653,6 +673,14 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
         <button class="link-btn" id="manage-categories" type="button">Edit</button>
       </div>
       <div class="cat-filters" id="cat-filters"></div>
+    </section>
+    <section class="block-look" aria-labelledby="block-look-label">
+      <div class="side-head"><h2 id="block-look-label">Block color</h2></div>
+      <div class="look-pick" role="radiogroup" aria-labelledby="block-look-label" aria-describedby="block-look-hint">
+        <label class="look-opt" title="A pale block with the category's color down its left side"><input type="radio" name="block-look" id="look-edge" value="edge" checked><span class="look-swatch edge" aria-hidden="true"></span>Light</label>
+        <label class="look-opt" title="The block filled with the category's color"><input type="radio" name="block-look" id="look-solid" value="solid"><span class="look-swatch solid" aria-hidden="true"></span>Filled</label>
+      </div>
+      <p class="look-hint" id="block-look-hint">Done blocks fade back.</p>
     </section>
     <section class="save-card" id="save-card" aria-label="Saving">
       <div class="save-line" role="status">
@@ -974,6 +1002,9 @@ let lastPointerUp=0;
 let railCollapsed=false;
 // Whether N, T, W, D, C, X, [ and ] act while the calendar has the focus: the shortcuts panel's switch.
 let singleKeys=true;
+// How blocks show their category's color: Light ('edge') or Filled ('solid'). Kept only once picked
+// (null until then), so a browser that never picks gets whatever the default becomes.
+let blockStyle=null;const DEFAULT_BLOCK_STYLE='edge';
 // The block the keyboard was last on (the calendar's one Tab stop), and where it was, so the nearest
 // one on its day takes its place once it is gone; wantsBlock: the calendar took the focus for want of one.
 let focusId=null, focusAt=null, wantsBlock=false;
@@ -1045,8 +1076,8 @@ function normalizeTemplates(list){return (Array.isArray(list)?list:[]).map(t=>{i
 
 /* ---------- storage ---------- */
 function setSaveStatus(ok){$('save-card').classList.toggle('failed',!ok);$('save-status').textContent=ok?'Saved in this browser':'Not saved in this browser';$('save-note').textContent=ok?'Back up to a file to move your planner to another device.':'Browser storage is blocked here. Use Back up to keep your changes.';}
-function save(){try{localStorage.setItem(storageKey,JSON.stringify({version:4,selectedWeek:key(weekStart),sidebarCollapsed,railCollapsed,dayMode,hours:rangeMode,catsV2:true,hiddenCats:[...hiddenCats],singleKeys,templates,categories,blocks}));setSaveStatus(true);return true;}catch(e){setSaveStatus(false);return false;}}
-function bootstrap(){try{const raw=localStorage.getItem(storageKey);if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed)){categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=normalizeBlocks(parsed);}else{categories=normalizeCategories(parsed.categories);blocks=normalizeBlocks(parsed.blocks);if(parsed.selectedWeek)weekStart=monday(fromKey(parsed.selectedWeek));sidebarCollapsed=!!parsed.sidebarCollapsed;railCollapsed=!!parsed.railCollapsed;templates=normalizeTemplates(parsed.templates);dayMode=typeof parsed.dayMode==='boolean'?parsed.dayMode:dayMode;if(parsed.hours==='full'||parsed.hours==='work')rangeMode=parsed.hours;if(typeof parsed.singleKeys==='boolean')singleKeys=parsed.singleKeys;if(Array.isArray(parsed.hiddenCats)){const ids=categoryIds();hiddenCats=new Set(parsed.hiddenCats.filter(id=>ids.has(id)));}if(!parsed.catsV2)migrateCategories();}}else{categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=sampleWeek();}}catch(e){categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=sampleWeek();}save();}
+function save(){try{localStorage.setItem(storageKey,JSON.stringify({version:4,selectedWeek:key(weekStart),sidebarCollapsed,railCollapsed,dayMode,hours:rangeMode,catsV2:true,hiddenCats:[...hiddenCats],singleKeys,blockStyle:blockStyle||undefined,templates,categories,blocks}));setSaveStatus(true);return true;}catch(e){setSaveStatus(false);return false;}}
+function bootstrap(){try{const raw=localStorage.getItem(storageKey);if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed)){categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=normalizeBlocks(parsed);}else{categories=normalizeCategories(parsed.categories);blocks=normalizeBlocks(parsed.blocks);if(parsed.selectedWeek)weekStart=monday(fromKey(parsed.selectedWeek));sidebarCollapsed=!!parsed.sidebarCollapsed;railCollapsed=!!parsed.railCollapsed;templates=normalizeTemplates(parsed.templates);dayMode=typeof parsed.dayMode==='boolean'?parsed.dayMode:dayMode;if(parsed.hours==='full'||parsed.hours==='work')rangeMode=parsed.hours;if(typeof parsed.singleKeys==='boolean')singleKeys=parsed.singleKeys;if(parsed.blockStyle==='edge'||parsed.blockStyle==='solid')blockStyle=parsed.blockStyle;if(Array.isArray(parsed.hiddenCats)){const ids=categoryIds();hiddenCats=new Set(parsed.hiddenCats.filter(id=>ids.has(id)));}if(!parsed.catsV2)migrateCategories();}}else{categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=sampleWeek();}}catch(e){categories=normalizeCategories(DEFAULT_CATEGORIES);blocks=sampleWeek();}save();}
 
 /* ---------- toast + undo ---------- */
 function showToast(msg,opts={}){
@@ -1172,6 +1203,7 @@ function render(){
   fitHours();
   $('range-work').setAttribute('aria-pressed',String(rangeMode==='work'));
   $('range-full').setAttribute('aria-pressed',String(rangeMode==='full'));
+  for(const st of ['edge','solid'])$('look-'+st).checked=(blockStyle||DEFAULT_BLOCK_STYLE)===st;
   $('single-keys').checked=singleKeys;
   renderMonth();
   renderCatFilters();
@@ -1226,7 +1258,7 @@ function renderCatFilters(){
     const vis=!hiddenCats.has(c.id);
     const b=document.createElement('button');b.type='button';b.className='cat-filter';
     b.setAttribute('aria-pressed',String(vis));b.title=(vis?'Hide ':'Show ')+c.name;
-    b.style.setProperty('--c',c.color);
+    b.style.setProperty('--c',categoryColour(c.color));
     b.innerHTML=`<span class="dot" aria-hidden="true"></span><span class="name">${escapeHtml(c.name)}</span>${ICON_EYE_OFF}`;
     b.addEventListener('click',()=>{if(vis)hiddenCats.add(c.id);else hiddenCats.delete(c.id);save();render();});
     wrap.appendChild(b);
@@ -1331,12 +1363,13 @@ function renderEvents(lane,items,wide){
       // Under 64px the title keeps to one line, leaving room for the time; under 48px the block also
       // trims its padding (snug).
       const oneLine=!short&&px<64;
+      const look=blockLook(c.color,blockStyle||DEFAULT_BLOCK_STYLE,b.done);
       const node=document.createElement('div');
-      node.className='event'+(short?' short':'')+(oneLine?' one-line':'')+(!short&&px<48?' snug':'')+(tiny?' tiny':'')+(b.done?' done':'')+(sel?' selected':'');
+      node.className='event'+(look.bar?' barred':'')+(short?' short':'')+(oneLine?' one-line':'')+(!short&&px<48?' snug':'')+(tiny?' tiny':'')+(b.done?' done':'')+(sel?' selected':'');
       // One block takes Tab, the calendar's one stop (rove).
       node.dataset.id=b.id;node.tabIndex=-1;node.setAttribute('role','button');
       node.setAttribute('aria-label',blockLabel(b,sel));
-      node.style.setProperty('--fill',tint(c.color,.86));node.style.setProperty('--edge',tint(c.color,.6));node.style.setProperty('--ink-c',shade(c.color,.45));
+      node.style.setProperty('--fill',look.fill);node.style.setProperty('--edge',look.edge);node.style.setProperty('--ink-c',look.mark);if(look.ink)node.style.setProperty('--ev-ink',look.ink);if(look.bar)node.style.setProperty('--bar',look.bar);
       node.style.top=`calc(${at(b.start-viewStart)} + 1px)`;node.style.height=`calc(${at(b.duration)} - 2px)`;
       if(n>1){const col=cols.get(b.id);node.style.left=`calc(${col/n*100}% + 3px)`;node.style.width=`calc(${100/n}% - 6px)`;node.style.right='auto';}
       const lines=b.desc&&!short?noteLines(px,printing):0;
@@ -1362,8 +1395,8 @@ function renderSummary(week){
   $('total-caption').textContent=total?`${week.length} block${week.length!==1?'s':''} across ${daysUsed} day${daysUsed!==1?'s':''}${doneMins?` · ${hrs(doneMins)}h done`:''}`:'No blocks yet';
   const stats=categories.map(c=>({c,m:week.filter(b=>b.cat===c.id).reduce((s,b)=>s+b.duration,0)})).filter(x=>x.m>0).sort((a,b)=>b.m-a.m);
   $('cat-breakdown').hidden=!stats.length;
-  $('cat-bar').innerHTML=stats.map(s=>`<span style="width:${s.m/total*100}%;background:${s.c.color}"></span>`).join('');
-  $('cat-stats').innerHTML=stats.map(s=>`<li><span class="dot" style="background:${s.c.color}" aria-hidden="true"></span><span class="nm">${escapeHtml(s.c.name)}</span><span class="h">${hrs(s.m)}h</span><span class="p">${Math.round(s.m/total*100)}%</span></li>`).join('');
+  $('cat-bar').innerHTML=stats.map(s=>`<span style="width:${s.m/total*100}%;background:${categoryColour(s.c.color)}"></span>`).join('');
+  $('cat-stats').innerHTML=stats.map(s=>`<li><span class="dot" style="background:${categoryColour(s.c.color)}" aria-hidden="true"></span><span class="nm">${escapeHtml(s.c.name)}</span><span class="h">${hrs(s.m)}h</span><span class="p">${Math.round(s.m/total*100)}%</span></li>`).join('');
 }
 function updateNowLine(){
   const n=new Date();const m=n.getHours()*60+n.getMinutes();const inRange=m>=viewStart&&m<viewEnd;
@@ -1374,7 +1407,7 @@ function updateNowLine(){
 let tipTimer=null, tipPos={x:0,y:0};
 function showTip(b){
   const c=getCategory(b.cat);const t=$('tip');
-  t.innerHTML=`<b>${escapeHtml(b.title)}</b><span class="mono">${time(b.start)}–${time(b.start+b.duration)} · ${durLabel(b.duration)}</span>${b.desc?`<span>${escapeHtml(b.desc)}</span>`:''}<span class="tip-cat"><i style="background:${c.color}"></i>${escapeHtml(c.name)}${b.done?' · done':''}</span>`;
+  t.innerHTML=`<b>${escapeHtml(b.title)}</b><span class="mono">${time(b.start)}–${time(b.start+b.duration)} · ${durLabel(b.duration)}</span>${b.desc?`<span>${escapeHtml(b.desc)}</span>`:''}<span class="tip-cat"><i style="background:${categoryColour(c.color)}"></i>${escapeHtml(c.name)}${b.done?' · done':''}</span>`;
   t.hidden=false;const w=t.offsetWidth,h=t.offsetHeight;
   let x=tipPos.x+14,y=tipPos.y+18;if(x+w>innerWidth-8)x=tipPos.x-w-14;if(y+h>innerHeight-8)y=tipPos.y-h-12;
   t.style.left=Math.max(8,x)+'px';t.style.top=Math.max(8,y)+'px';
@@ -1520,7 +1553,7 @@ function closeQuick(){if(!quick&&!draftEl)return;const hadFocus=$('quick').conta
 function quickFocus(){(touchScreen()?$('quick'):$('quick-title')).focus({preventScroll:true});}
 function renderQuickCats(){
   const wrap=$('quick-cats');wrap.innerHTML='';
-  categories.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='quick-cat';b.style.setProperty('--c',c.color);b.style.setProperty('--t',tint(c.color,.86));b.setAttribute('aria-pressed',String(!!quick&&quick.cat===c.id));b.innerHTML=`<span class="dot" aria-hidden="true"></span>${escapeHtml(c.name)}`;b.addEventListener('click',()=>{if(!quick)return;quick.cat=c.id;renderQuickCats();quickFocus();});wrap.appendChild(b);});
+  categories.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='quick-cat';b.style.setProperty('--c',categoryColour(c.color));b.style.setProperty('--t',tint(categoryColour(c.color),.86));b.setAttribute('aria-pressed',String(!!quick&&quick.cat===c.id));b.innerHTML=`<span class="dot" aria-hidden="true"></span>${escapeHtml(c.name)}`;b.addEventListener('click',()=>{if(!quick)return;quick.cat=c.id;renderQuickCats();quickFocus();});wrap.appendChild(b);});
 }
 function saveQuick(){
   if(!quick)return;const title=$('quick-title').value.trim();
@@ -1551,7 +1584,7 @@ function openCtx(x,y,items){
       // By name when asked for, and on a touch screen, which has no tooltips to name the swatches.
       const named=it.cats.named||touchScreen();
       const row=document.createElement('div');row.className=named?'ctx-cat-list':'ctx-cats';row.setAttribute('role','group');row.setAttribute('aria-label','Category');
-      categories.forEach(c=>{const b=document.createElement('button');b.type='button';b.className=named?'item ctx-cat-row':'ctx-cat';b.setAttribute('role','menuitemradio');b.setAttribute('aria-checked',String(c.id===it.cats.checked));b.style.setProperty('--c',c.color);
+      categories.forEach(c=>{const b=document.createElement('button');b.type='button';b.className=named?'item ctx-cat-row':'ctx-cat';b.setAttribute('role','menuitemradio');b.setAttribute('aria-checked',String(c.id===it.cats.checked));b.style.setProperty('--c',categoryColour(c.color));
         if(named)b.innerHTML=`<span class="dot" aria-hidden="true"></span><span class="nm">${escapeHtml(c.name.trim()||'Untitled')}</span>${c.id===it.cats.checked?ICON_TICK:''}`;
         else{b.setAttribute('aria-pressed',String(c.id===it.cats.checked));b.setAttribute('aria-label',c.name);b.title=c.name;b.innerHTML='<span aria-hidden="true"></span>';}
         b.addEventListener('click',()=>{closeCtx();ctxFocusBack();it.cats.pick(c.id);});row.appendChild(b);});
@@ -1720,6 +1753,19 @@ function contrast(a,b){const x=luminance(a),y=luminance(b);return (Math.max(x,y)
 function filledColours(color){const base=normalizeHex(color);const white=contrast(base,'#ffffff')>=3;const ink=white?'#ffffff':'#213247';let bg=base;for(let s=1;contrast(bg,ink)<4.5&&s<=50;s++)bg=mix(base,white?0:255,s/50);return {bg,ink};}
 /* The header: a light tint of the category's colour, and an accent deepened only as far as it must be to stand out on the tint at 3:1. */
 function headerTint(color){const base=normalizeHex(color);const light=mix(base,255,.86);let accent=base;for(let s=1;contrast(accent,light)<3&&s<=50;s++)accent=mix(base,0,s/50);return {tint:light,accent};}
+/* The color a category shows everywhere: its color as a filled block shows it, so the sidebar's dots,
+   the summary, menus and blocks in either look match. The stored color is unchanged. */
+function categoryColour(color){return filledColours(color).bg;}
+/* `color`, deepened only as far as it must be to stand out on `fill` at 3:1. */
+function deepenOn(color,fill){let out=color;for(let s=1;contrast(out,fill)<3&&s<=50;s++)out=mix(color,0,s/50);return out;}
+/* A block's fill, border, ink (null keeps the page's dark ink), Done ring and grip color, and the
+   line down its left side (null: none). A done block is paler in either look. */
+function blockLook(color,style,done){
+  const c=categoryColour(color);
+  if(done){const fill=tint(c,.9);return {fill,edge:shade(fill,.1),ink:null,mark:shade(c,.45),bar:tint(c,.5)};}
+  if(style==='solid'){const f=filledColours(color);return {fill:f.bg,edge:shade(f.bg,.12),ink:f.ink,mark:f.ink,bar:null};}
+  const fill=tint(c,.78);return {fill,edge:shade(fill,.14),ink:null,mark:shade(c,.45),bar:deepenOn(c,fill)};
+}
 // The Done tick's look for its state: labelled "Done" beside the circle until it is ticked, then the ticked circle alone. Its
 // tooltip says what a click does; its name stays "Done", checked or not.
 function showDone(){const done=$('task-done').checked;$('done-label').hidden=done;$('done-wrap').title=done?'Mark as not done':'Mark as done';}
@@ -1745,8 +1791,8 @@ function closeEditor(){closePicker();$('overlay').classList.remove('open');overl
 /* Draws the chosen category everywhere the editor shows it: its field, the header's tint and Done ring, and the block's own day in "Also on". */
 function renderEditorCats(){
   const c=categories.find(x=>x.id===editorCat);
-  $('cat-dot').style.setProperty('--c',c?c.color:'transparent');$('cat-name').textContent=c?c.name:'None';
-  const color=c?c.color:'#285da3';const h=headerTint(color),f=filledColours(color);const form=$('form');
+  $('cat-dot').style.setProperty('--c',c?categoryColour(c.color):'transparent');$('cat-name').textContent=c?c.name:'None';
+  const color=c?categoryColour(c.color):'#285da3';const h=headerTint(color),f=filledColours(color);const form=$('form');
   form.style.setProperty('--ed-tint',h.tint);form.style.setProperty('--ed-accent',h.accent);form.style.setProperty('--ed-bg',f.bg);form.style.setProperty('--ed-ink',f.ink);
 }
 const ICON_CHEV='<svg class="ed-chev" aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
@@ -1851,7 +1897,7 @@ picker($('ed-date'),$('form'),{label:'Day',options:()=>WD.map((_,i)=>({value:Str
 // A new start keeps the block's length, cut short at midnight, and never less than one step.
 picker($('ed-start'),$('form'),{label:'Starts',options:()=>{const o=[];for(let m=0;m<DAY_MIN;m+=STEP)o.push({value:String(m),label:time(m)});return o;},value:()=>String(edStart),choose:v=>{const next=Number(v);edEnd=Math.max(next+STEP,Math.min(DAY_MIN,next+(edEnd-edStart)));edStart=next;renderWhen();updateEditor();}});
 picker($('ed-end'),$('form'),{label:'Ends',options:()=>{const o=[];for(let m=edStart+STEP;m<=DAY_MIN;m+=STEP)o.push({value:String(m),label:time(m),hint:lenLabel(m-edStart)});return o;},value:()=>String(edEnd),choose:v=>{edEnd=Number(v);renderWhen();updateEditor();}});
-picker($('cat-field'),$('form'),{label:'Category',options:()=>categories.map(c=>({value:c.id,label:c.name,color:c.color})),value:()=>editorCat,choose:id=>{editorCat=id;renderEditorCats();},footer:{html:ICON_PLUS+'New category',action:()=>openCategoryManager({addNew:true})}});
+picker($('cat-field'),$('form'),{label:'Category',options:()=>categories.map(c=>({value:c.id,label:c.name,color:categoryColour(c.color)})),value:()=>editorCat,choose:id=>{editorCat=id;renderEditorCats();},footer:{html:ICON_PLUS+'New category',action:()=>openCategoryManager({addNew:true})}});
 
 /* ---------- category manager ---------- */
 function usage(id){return blocks.filter(b=>b.cat===id).length;}
@@ -1882,9 +1928,9 @@ function renderCatRows(){
     }else{
       row.className='cat-row';
       const label=escapeHtml(c.name.trim()||'new category');
-      row.innerHTML=`<span class="cat-handle" aria-hidden="true" title="Drag to reorder">${ICON_GRIP}</span><label class="swatch-pick" style="--c:${c.color}" title="Change color"><span class="sr-only">Color for ${escapeHtml(c.name||'new category')}</span><input type="color" value="${c.color}"></label><label class="sr-only" for="cn-${c.id}">Category name</label><input id="cn-${c.id}" class="input cat-name" type="text" maxlength="30" placeholder="Category name" value="${escapeHtml(c.name)}"><span class="usage">${c.isNew?'new':n+' block'+(n!==1?'s':'')}</span><button type="button" class="icon-btn sm cat-move up" aria-label="Move ${label} up"${c===live[0]?' disabled':''}>${ICON_UP}</button><button type="button" class="icon-btn sm cat-move down" aria-label="Move ${label} down"${c===live[live.length-1]?' disabled':''}>${ICON_DOWN}</button><button type="button" class="icon-btn sm del" aria-label="Delete ${escapeHtml(c.name||'category')}">${ICON_TRASH}</button>`;
+      row.innerHTML=`<span class="cat-handle" aria-hidden="true" title="Drag to reorder">${ICON_GRIP}</span><label class="swatch-pick" style="--c:${categoryColour(c.color)}" title="Change color"><span class="sr-only">Color for ${escapeHtml(c.name||'new category')}</span><input type="color" value="${c.color}"></label><label class="sr-only" for="cn-${c.id}">Category name</label><input id="cn-${c.id}" class="input cat-name" type="text" maxlength="30" placeholder="Category name" value="${escapeHtml(c.name)}"><span class="usage">${c.isNew?'new':n+' block'+(n!==1?'s':'')}</span><button type="button" class="icon-btn sm cat-move up" aria-label="Move ${label} up"${c===live[0]?' disabled':''}>${ICON_UP}</button><button type="button" class="icon-btn sm cat-move down" aria-label="Move ${label} down"${c===live[live.length-1]?' disabled':''}>${ICON_DOWN}</button><button type="button" class="icon-btn sm del" aria-label="Delete ${escapeHtml(c.name||'category')}">${ICON_TRASH}</button>`;
       const pick=row.querySelector('.swatch-pick');
-      row.querySelector('input[type=color]').addEventListener('input',e=>{c.color=normalizeHex(e.target.value);pick.style.setProperty('--c',c.color);});
+      row.querySelector('input[type=color]').addEventListener('input',e=>{c.color=normalizeHex(e.target.value);pick.style.setProperty('--c',categoryColour(c.color));});
       row.querySelector('.cat-name').addEventListener('input',e=>{c.name=e.target.value;const named=c.name.trim()||'new category';row.querySelector('.up').setAttribute('aria-label',`Move ${named} up`);row.querySelector('.down').setAttribute('aria-label',`Move ${named} down`);row.querySelector('.del').setAttribute('aria-label',`Delete ${c.name||'category'}`);});
       row.querySelector('.up').addEventListener('click',()=>moveRow(c,-1));
       row.querySelector('.down').addEventListener('click',()=>moveRow(c,1));
@@ -2144,6 +2190,7 @@ $('calendar-scroll').addEventListener('pointerdown',e=>{if(!e.target.closest||e.
 $('skip-calendar').addEventListener('click',e=>{e.preventDefault();focusCalendar();});
 $('skip-summary').addEventListener('click',e=>{e.preventDefault();skipToSummary();});
 $('single-keys').addEventListener('change',e=>{singleKeys=e.target.checked;save();});
+for(const st of ['edge','solid'])$('look-'+st).addEventListener('change',()=>{blockStyle=st;save();render();});
 
 /* ---------- keyboard ---------- */
 document.addEventListener('keydown',e=>{
