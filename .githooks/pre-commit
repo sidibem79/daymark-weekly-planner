@@ -1,0 +1,4 @@
+#!/bin/sh
+# Checks run before every commit. Turn them on once per clone: git config core.hooksPath .githooks
+set -e
+node scripts/check-contrast.mjs

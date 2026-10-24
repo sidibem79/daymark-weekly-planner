@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Keep analytics IDs and initialization in sync with index.html and app/index.html. -->
+<script>
+(function(){
+  const measurementId = 'G-5E2LBE1R2H'; // Google Analytics Measurement ID
+  const clarityProjectId = 'yxp6nquhv7'; // Microsoft Clarity project ID
+  if (location.protocol !== 'https:' || !['daymarkweekly.app', 'www.daymarkweekly.app'].includes(location.hostname)) return;
+
+  if (/^G-[A-Z0-9]+$/.test(measurementId)) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){ window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', measurementId);
+    const googleTag = document.createElement('script');
+    googleTag.async = true;
+    googleTag.src = 'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
+    document.head.appendChild(googleTag);
+  }
+
+  if (/^[a-z0-9]+$/.test(clarityProjectId)) {
+    window.clarity = window.clarity || function(){ (window.clarity.q = window.clarity.q || []).push(arguments); };
+    const clarityTag = document.createElement('script');
+    clarityTag.async = true;
+    clarityTag.src = 'https://www.clarity.ms/tag/' + clarityProjectId;
+    document.head.appendChild(clarityTag);
+  }
+})();
+</script>
+<title>Daymark Weekly Planner Pro: your week on every device</title>
+<meta name="description" content="Daymark Weekly Planner Pro saves your planner to your account, so your week is on your phone and your laptop, with nothing to back up. Join the early-access list for the founding price.">
+<link rel="canonical" href="https://www.daymarkweekly.app/upgrade/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Daymark Weekly Planner Pro">
+<meta property="og:description" content="Your week on your phone too, with nothing to back up. Founding members pay $29 a year, for life.">
+<meta property="og:image" content="https://www.daymarkweekly.app/media/brand/share-card.jpg">
+<meta property="og:url" content="https://www.daymarkweekly.app/upgrade/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#17243B">
+<link rel="icon" href="/media/brand/favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="icon" href="/media/brand/favicon.svg" type="image/svg+xml" sizes="any">
+<link rel="apple-touch-icon" href="/media/brand/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* The brand kit's colours (daymark-brand-kit v1.1 tokens.css): cobalt, ink, mist and white. The
+   dark sections are ink. Every text colour here is at least 6:1 on its background. */
+:root{
+  --cobalt:#2855D9; --cobalt-h:#2046B9; --ink:#17243B; --head:#101E36; --quiet:#4A5B75;
+  --mist:#EEF3FB; --rule:#DCE4EF;
+  --on-dark:#FFFFFF; --on-dark-2:#C9D3E6; --on-dark-3:#AEBBD3; --dark-rule:rgba(255,255,255,.12);
+  --font:Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#fff;color:var(--ink);font:400 17px/1.6 var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:var(--cobalt);text-underline-offset:3px}
+h1,h2,h3,p,ul,figure{margin:0}
+:focus-visible{outline:3px solid var(--cobalt);outline-offset:3px;border-radius:4px}
+.wrap{width:min(1160px,100% - 40px);margin-inline:auto}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* Dark sections: ink, with a cobalt glow and the faint week grid of the free planner's home page. */
+.dark{position:relative;isolation:isolate;overflow:hidden;background:var(--ink);color:var(--on-dark)}
+.dark::before{content:"";position:absolute;inset:0;z-index:-1;
+  background:radial-gradient(760px 520px at 82% 18%,rgba(40,85,217,.42),transparent 70%),radial-gradient(520px 380px at 8% 100%,rgba(40,85,217,.22),transparent 70%)}
+.dark.grid::after{content:"";position:absolute;inset:auto -10% 0 -10%;height:55%;z-index:-1;
+  background:repeating-linear-gradient(90deg,rgba(201,211,230,.07) 0 1px,transparent 1px 120px),repeating-linear-gradient(0deg,rgba(201,211,230,.07) 0 1px,transparent 1px 60px);
+  transform:perspective(700px) rotateX(60deg);transform-origin:50% 100%;
+  -webkit-mask-image:linear-gradient(to top,#000 10%,transparent 85%);mask-image:linear-gradient(to top,#000 10%,transparent 85%)}
+.dark :focus-visible{outline-color:#9DB6FF}
+.dark a{color:#B8CBFF}
+
+/* Header, on the dark hero: the kit's white Pro logo. */
+header{background:var(--ink);border-bottom:1px solid var(--dark-rule);color:var(--on-dark)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:76px}
+.logo{display:block;width:230px;margin-left:-5px}
+.logo img{display:block;width:100%;height:auto}
+.bar nav{display:flex;align-items:center;gap:4px}
+.bar nav a{font-size:15px;font-weight:500;text-decoration:none;padding:10px 12px;border-radius:8px;color:var(--on-dark-2)}
+.bar nav a:hover{color:#fff;background:rgba(255,255,255,.07)}
+.bar nav a.signin{color:#fff;border:1px solid rgba(255,255,255,.28);margin-left:6px}
+
+/* Buttons and the sign-up form */
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:14px 24px;border:1px solid var(--cobalt);border-radius:10px;background:var(--cobalt);color:#fff;font:600 16px/1.2 var(--font);text-decoration:none;cursor:pointer;transition:background-color .15s,transform .15s}
+.btn:hover{background:var(--cobalt-h);border-color:var(--cobalt-h)}
+.dark .btn{box-shadow:0 14px 36px -12px rgba(40,85,217,.9)}
+.btn:disabled{opacity:.7;cursor:wait}
+.join{max-width:540px}
+.join label{display:block;font-size:15px;font-weight:500;margin-bottom:8px}
+.join .row{display:flex;gap:10px;flex-wrap:wrap}
+.join input[type=email]{flex:1 1 240px;min-width:0;height:52px;padding:0 16px;border:1px solid #B9C6D8;border-radius:10px;background:#fff;color:var(--ink);font:400 16px var(--font)}
+.dark .join input[type=email]{border-color:transparent}
+.join input[type=email]::placeholder{color:#6B7A92}
+.join input[type=email]:focus{outline:none;box-shadow:0 0 0 3px #9DB6FF}
+.join .btn{flex:0 0 auto}
+.join .hp{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+.join .note{margin-top:12px;font-size:14px;line-height:1.5;color:var(--on-dark-3)}
+.join .status{margin-top:12px;font-size:15px;line-height:1.5;font-weight:500}
+.join .status:empty{display:none}
+.join .status.ok{color:#8BE3BE}
+.join .status.err{color:#FFB4AB}
+
+/* Hero */
+.hero{padding:76px 0 112px}
+.hero .wrap{display:grid;gap:64px;align-items:center}
+@media (min-width:1040px){.hero .wrap{grid-template-columns:minmax(0,.9fr) minmax(0,1.25fr);gap:48px}}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;margin-bottom:22px;padding:6px 12px;border:1px solid rgba(184,203,255,.35);border-radius:8px;font-size:14px;font-weight:500;color:var(--on-dark-2)}
+.eyebrow b{color:#fff;font-weight:600}
+h1{font-size:clamp(36px,4.2vw,54px);line-height:1.05;font-weight:700;letter-spacing:-.045em;max-width:15ch}
+.hero .lead{margin:22px 0 34px;font-size:clamp(18px,1.6vw,20px);line-height:1.55;color:var(--on-dark-2);max-width:32em}
+.hero .lead strong{color:#fff;font-weight:600}
+
+/* The demo: the free planner's tilted week board, in Pro's block look, and a phone in front of it
+   showing the same Tuesday. A block moved on the phone moves on the board straight after. */
+.stage{position:relative;perspective:1600px;padding:0 0 70px}
+.board{position:relative;max-width:600px;margin-right:130px;transform:rotateY(-14deg) rotateX(7deg) rotateZ(1deg);transform-style:preserve-3d;background:#FCFDFF;border:1px solid #CDD9E6;border-radius:18px;padding:14px 14px 16px 52px;color:#213247;
+  box-shadow:0 60px 120px -30px rgba(0,0,0,.7),0 0 90px -20px rgba(40,85,217,.55)}
+.days{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px}
+.days span{font-size:12px;font-weight:500;color:#52647A;padding-left:4px}
+.days b{color:#213247;font-weight:600;font-size:14px;margin-left:5px}
+.cols{--h:38px;position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;height:calc(var(--h) * 9)}
+.col{position:relative;border-radius:8px;background:#FCFDFF repeating-linear-gradient(180deg,#E2EAF3 0 1px,transparent 1px var(--h))}
+.hours{position:absolute;left:10px;top:44px;display:grid;grid-auto-rows:38px}
+.hours span{font:500 10.5px var(--mono);color:#52647A;transform:translateY(-6px)}
+.blk{position:absolute;left:2px;right:2px;padding:4px 6px 4px 9px;border:1px solid var(--edge);border-radius:7px;background:var(--fill);overflow:hidden;color:#213247;transition:top .7s cubic-bezier(.3,.9,.3,1),box-shadow .3s}
+.blk::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bar)}
+.blk b{display:block;font-size:11.5px;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blk i{display:block;margin-top:1px;font:500 10px var(--mono);font-style:normal}
+/* On the board, as on the home page, blocks show their titles only, wrapping. */
+.board .blk b{white-space:normal;hyphens:auto;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;font-size:11px;line-height:1.15}
+.board .blk i{display:none}
+.blk.short{display:flex;align-items:center;padding:0 6px 0 9px}
+.blk.short b,.board .blk.short b{font-size:10.5px;line-height:1;-webkit-line-clamp:1;line-clamp:1}
+.blk.short i{display:none}
+.blk.pre{opacity:0}
+.blk.on{animation:drop .75s cubic-bezier(.2,1.25,.35,1) both}
+@keyframes drop{0%{opacity:0;transform:translate3d(var(--dx),-240px,110px) rotate(var(--r)) scale(.85)}60%{opacity:1}100%{opacity:1;transform:none}}
+.blk.moved{box-shadow:0 0 0 2px var(--cobalt),0 8px 20px -8px rgba(40,85,217,.7)}
+.deep{--fill:#d5e1ee;--edge:#b7c2cd;--bar:#4178b3}
+.meet{--fill:#f8e4da;--edge:#d5c4bb;--bar:#ba714a}
+.learn{--fill:#e3dcf5;--edge:#c3bdd3;--bar:#7e61d0}
+.health{--fill:#cce4dc;--edge:#afc4bd;--bar:#158661}
+.admin{--fill:#e5e9ed;--edge:#c5c8cc;--bar:#758494}
+.brk{--fill:#f3e9cd;--edge:#d1c8b0;--bar:#a57e15}
+
+/* The phone: a photographed-style handset (media/pro/phone-ink.webp, generated for this page,
+   with its screen cut out) laid over the live screen, so the planner's Day view and the moved
+   block show through. The screen box reaches a little under the bezel so no gap shows. */
+.phone{position:absolute;right:-24px;bottom:0;width:224px;aspect-ratio:736/1605;filter:drop-shadow(0 40px 50px rgba(0,0,0,.55)) drop-shadow(0 0 60px rgba(40,85,217,.35))}
+.phone .frame{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
+.screen{position:absolute;left:4.6%;top:1.2%;width:90.8%;height:97.6%;border-radius:30px;overflow:hidden;background:#FCFDFF;color:#213247}
+.status{display:flex;justify-content:space-between;align-items:center;height:34px;padding:2px 14px 0 24px;font-size:12px;font-weight:600}
+.status svg{display:block}
+.status .icons{display:flex;gap:5px;align-items:center}
+.appbar{display:flex;align-items:center;justify-content:space-between;padding:6px 14px 10px;border-bottom:1px solid #CDD9E6}
+.appbar strong{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.appbar strong small{display:block;font-size:11px;font-weight:500;color:#52647A;letter-spacing:0}
+.appbar .nav{display:flex;gap:4px}
+.appbar .nav span{display:grid;place-items:center;width:26px;height:26px;border-radius:7px;background:#EEF3FB;color:#52647A}
+.dayview{--h:36px;position:relative;margin:10px 12px 0 46px;height:calc(var(--h) * 9);background:repeating-linear-gradient(180deg,#E2EAF3 0 1px,transparent 1px var(--h))}
+.dayview .t{position:absolute;left:-40px;font:500 10px var(--mono);color:#52647A;transform:translateY(-6px)}
+.dayview .blk{left:0;right:0;opacity:1}
+.dayview .blk b{font-size:12px}
+.homebar{position:absolute;left:50%;bottom:9px;width:96px;height:4px;margin-left:-48px;border-radius:3px;background:#17243B}
+
+.stage figcaption{position:absolute;left:0;bottom:6px;max-width:320px;font-size:14px;line-height:1.45;color:var(--on-dark-3)}
+@media (max-width:1039px){.board{transform:rotateX(7deg)}.stage{max-width:720px;width:100%;margin-inline:auto}.phone{right:0}}
+/* Phones: the phone alone, centred, is the demo. */
+@media (max-width:720px){
+  .board{display:none}
+  .stage{padding:0 0 64px;display:flex;justify-content:center;perspective:none}
+  .phone{position:relative;right:auto}
+  .stage figcaption{left:0;right:0;max-width:none;text-align:center}
+}
+
+/* Sections between the dark hero and the dark offer: white, quiet, and built from the planner's
+   own pieces. Headings are full sentences; no labels above them. */
+section{padding:112px 0}
+h2{font-size:clamp(32px,3.6vw,46px);line-height:1.06;font-weight:700;letter-spacing:-.045em;color:var(--head)}
+.dark h2{color:#fff}
+.intro{margin-top:16px;font-size:18px;line-height:1.55;color:var(--quiet);max-width:36em}
+.dark .intro{color:var(--on-dark-2)}
+
+/* What Pro adds: an uneven grid, each tile showing its benefit rather than an icon. */
+.adds-head{display:grid;gap:18px 64px;align-items:end;margin-bottom:48px}
+@media (min-width:900px){.adds-head{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}.adds-head .intro{margin:0 0 6px}}
+.adds-head h2{max-width:16ch}
+.bento{display:grid;gap:16px;grid-template-columns:repeat(12,minmax(0,1fr))}
+.tile{position:relative;overflow:hidden;border-radius:24px;padding:34px;background:#F5F8FD;color:var(--ink)}
+.tile h3{font-size:24px;line-height:1.15;font-weight:650;letter-spacing:-.03em;color:var(--head);max-width:22ch}
+.tile p{margin-top:10px;font-size:16px;line-height:1.55;color:var(--quiet);max-width:30em}
+.t-sync{grid-column:span 7;display:grid;gap:30px;padding-bottom:40px;background:var(--ink);color:#fff}
+.t-sync::before{content:"";position:absolute;inset:0;background:radial-gradient(460px 300px at 85% 0%,rgba(40,85,217,.5),transparent 70%);pointer-events:none}
+.t-sync h3{color:#fff}.t-sync p{color:var(--on-dark-2)}
+.t-sync>*{position:relative}
+.t-backup{grid-column:span 5;display:flex;flex-direction:column;justify-content:space-between;min-height:340px;background:#fff;border:1px solid var(--rule)}
+/* The free planner's confirmation after Back up, struck through: the chore Pro removes. */
+.v-toast{align-self:flex-start;display:inline-flex;align-items:center;gap:10px;margin:0 0 40px!important;padding:11px 16px;border-radius:10px;background:#213247;color:#C9D3E6!important;font-size:14px!important;box-shadow:0 18px 30px -18px rgba(23,36,59,.6);transform:rotate(-2deg)}
+.v-toast s{text-decoration-thickness:2px;text-decoration-color:#7FA0FF}
+.t-backup h3{font-size:clamp(38px,4vw,54px);line-height:1;letter-spacing:-.05em;max-width:7ch}
+.t-backup p{margin-top:18px}
+.t-bring{grid-column:span 5;display:grid;gap:30px;align-content:space-between}
+.t-review{grid-column:span 7;display:grid;gap:30px;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);align-items:end;background:#fff;border:1px solid var(--rule)}
+@media (max-width:980px){
+  .bento>.tile{grid-column:1/-1}
+  .t-review{grid-template-columns:1fr}
+  .t-backup{min-height:0}
+}
+
+/* Mini blocks, drawn as the planner draws them. */
+.mb{position:absolute;left:0;right:0;display:block;padding:5px 8px 5px 10px;border:1px solid var(--edge);border-radius:7px;background:var(--fill);color:#213247;overflow:hidden}
+.mb::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bar)}
+.mb b{display:block;font-size:12px;font-weight:600;line-height:1.2;white-space:nowrap}
+.mb i{display:block;font:500 10.5px var(--mono);font-style:normal;margin-top:1px}
+.mb.ring{box-shadow:0 0 0 2px #7FA0FF}
+
+/* Sync: the same block on a laptop's Tuesday and on a phone, joined. */
+/* Sync: a laptop's Monday to Wednesday and a phone's Tuesday on one shared scale. Every size is
+   in em, where 1em is 1px of a 540 by 290 drawing, so the whole picture scales as one; only the
+   innermost text elements set their own font size. Both grids run 9 AM to 5 PM at 19em an hour,
+   and both start at 45.8em from the top, so Tuesday's 3 PM client call is at the same height on
+   the two screens, joined by one line. */
+.v-sync-wrap{container-type:inline-size}
+.v-sync{position:relative;width:540em;height:290em;margin-inline:auto;font-size:min(1px,calc(100cqw / 540))}
+.v-sync .dev{position:absolute;filter:drop-shadow(0 24em 30em rgba(0,0,0,.5))}
+.v-sync .dev>img{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
+.v-sync .scr{position:absolute;overflow:hidden;background:#FCFDFF;color:#213247}
+/* Laptop, 430 wide: its screen is at 8.68%, 4.2% and 82.57% by 88.25% of the image, so the
+   screen starts at 21.8em and its grid (after a 24em header) at 45.8em. */
+.v-sync .laptop{left:0;top:12em;width:430em;height:234.1em}
+.v-sync .laptop .scr{left:8.68%;top:4.2%;width:82.57%;height:88.25%;border-radius:4em}
+/* Phone, 128 wide: its screen is at 4.6%, 1.2% and 90.8% by 97.6%, so it starts at 3.35em and
+   its grid (after 42.5em of status bar and day) at 45.8em too. */
+.v-sync .phone-s{left:412em;top:0;width:128em;height:279.1em;z-index:3}
+.v-sync .phone-s .scr{left:4.6%;top:1.2%;width:90.8%;height:97.6%;border-radius:17em}
+.v-sync .heads{display:grid;grid-template-columns:30em repeat(3,1fr);height:20em;border-bottom:1em solid #CDD9E6;color:#52647A}
+.v-sync .heads span{display:flex;align-items:center;gap:3em;padding-left:5em}
+.v-sync .heads i{font-style:normal;font-size:8.5em;font-weight:500}
+.v-sync .heads b{font-size:9.5em;font-weight:600;color:#213247}
+.v-sync .grid{position:absolute;left:0;right:0;top:24em;height:152em;display:grid;grid-template-columns:30em repeat(3,1fr)}
+.v-sync .phone-s .grid{top:42.5em;grid-template-columns:26em 1fr}
+.v-sync .lane{position:relative;border-left:1em solid #E2EAF3;background:repeating-linear-gradient(180deg,#E2EAF3 0 1em,transparent 1em 19em)}
+.v-sync .ruler{position:relative}
+.v-sync .ruler span{position:absolute;right:4em;transform:translateY(-50%)}
+.v-sync .ruler span:first-child{transform:none}
+.v-sync .ruler i{font:500 7em var(--mono);font-style:normal;color:#52647A}
+/* Room for the camera pill. */
+.v-sync .pbar{height:18em}
+.v-sync .pday{height:23.5em;display:flex;align-items:center;padding-left:10em;border-bottom:1em solid #CDD9E6}
+.v-sync .pday b{font-size:10.5em;font-weight:600}
+.v-sync .sb{position:absolute;left:2em;right:2em;padding:2em 4em 0 6em;border:1em solid var(--edge);border-radius:4em;background:var(--fill);overflow:hidden}
+.v-sync .sb::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2.5em;background:var(--bar)}
+.v-sync .sb b{display:block;font-size:7.5em;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v-sync .sb.ring{box-shadow:0 0 0 1.6em #7FA0FF}
+/* From the right edge of the laptop's Tuesday client call into the phone's, at 3:30 PM. */
+.v-sync .tie{position:absolute;left:283em;width:167em;top:168.5em;height:1.6em;background:#7FA0FF;z-index:2}
+.v-sync .tie::before{content:"";position:absolute;left:-3em;top:-3.2em;width:8em;height:8em;border-radius:50%;background:#7FA0FF;box-shadow:0 0 0 4em rgba(127,160,255,.25)}
+
+/* Bring your weeks: the Backup file becomes a week. */
+.v-bring{display:flex;align-items:center;gap:14px;color:#8EA0BC}
+.v-file{position:relative;flex:none;width:96px;height:118px;padding:52px 12px 0;border-radius:10px 22px 10px 10px;background:#fff;border:1px solid var(--rule);box-shadow:0 18px 30px -22px rgba(23,36,59,.5)}
+.v-file .fold{position:absolute;right:-1px;top:-1px;width:22px;height:22px;border-radius:0 22px 0 8px;background:#E7EDF7}
+.v-file b{display:block;font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.2}
+.v-file i{display:block;margin-top:3px;font:500 11px var(--mono);font-style:normal;color:var(--quiet)}
+.v-arrow{flex:none}
+.v-week{flex:1;display:grid;grid-template-columns:repeat(5,1fr);gap:5px;height:118px;padding:10px;border-radius:12px;background:#fff;border:1px solid var(--rule)}
+.v-week span{position:relative;background:repeating-linear-gradient(180deg,#EEF2F7 0 1px,transparent 1px 12px)}
+.v-week i{position:absolute;left:0;right:0;border-radius:3px;background:var(--fill);border:1px solid var(--edge);border-left:3px solid var(--bar)}
+
+/* Review: the planner's Review card, with sample hours. */
+.v-review{padding:22px 22px 18px;border-radius:16px;background:#FCFDFF;border:1px solid #CDD9E6;box-shadow:0 30px 50px -36px rgba(23,36,59,.5)}
+.r-title{font-size:15px;font-weight:600;color:#213247}
+.r-cap{margin-top:4px;font-size:13px;line-height:1.45;color:#52647A}
+.v-review ul{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:12px}
+.v-review li{display:grid;grid-template-columns:10px 84px minmax(0,1fr) auto;align-items:center;gap:10px;font-size:13px;color:#213247}
+.v-review .dot{width:9px;height:9px;border-radius:50%}
+.v-review .track{height:7px;border-radius:4px;background:#E7EDF5;overflow:hidden}
+.v-review .track i{display:block;height:100%;border-radius:4px}
+.v-review em{font:500 12px var(--mono);font-style:normal;color:#52647A;white-space:nowrap}
+.sample-note{margin-top:16px;font-size:14px;color:var(--quiet)}
+@media (max-width:560px){
+  .tile{padding:24px;border-radius:20px}
+  .v-review li{grid-template-columns:10px 70px minmax(0,1fr) auto;gap:8px}
+}
+
+/* Free or Pro: two plans, Pro the dark one. */
+.plans{padding-top:16px}
+.plan-grid{display:grid;gap:16px;margin-top:44px;align-items:stretch}
+@media (min-width:860px){.plan-grid{grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr)}}
+.plan{display:flex;flex-direction:column;padding:36px;border-radius:24px;border:1px solid var(--rule);background:#fff}
+.plan h3{font-size:18px;font-weight:600;color:var(--quiet)}
+.plan .cost{margin-top:14px;font-size:17px;color:var(--quiet)}
+.plan .cost b{font-size:48px;line-height:1;font-weight:700;letter-spacing:-.045em;color:var(--head);margin-right:6px}
+.plan .cost span{display:block;margin-top:6px;font-size:15px}
+.plan .where{margin-top:12px;font-size:15px;color:var(--quiet)}
+.plan ul{list-style:none;padding:24px 0 0;margin:26px 0 30px;border-top:1px solid var(--rule);display:grid;gap:14px;flex:1}
+.plan li{position:relative;padding-left:30px;font-size:16px;line-height:1.45}
+.plan li::before{content:"";position:absolute;left:0;top:2px;width:19px;height:19px;border-radius:50%}
+.plan li.yes{color:var(--ink)}
+.plan li.yes::before{background:#E4EBFB url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.2l2.2 2.2 4.8-4.8' fill='none' stroke='%232855D9' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/19px no-repeat}
+.plan li.no{color:var(--quiet)}
+.plan li.no::before{background:#F0F3F8 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 8h6' stroke='%237A8AA3' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") center/19px no-repeat}
+.plan-link{align-self:flex-start;font-weight:600;text-decoration:none;padding:12px 0}
+.plan-link:hover{text-decoration:underline}
+.plan.pro{position:relative;overflow:hidden;border:0;background:var(--ink);color:#fff;box-shadow:0 50px 90px -50px rgba(23,36,59,.9)}
+.plan.pro::before{content:"";position:absolute;inset:0;background:radial-gradient(520px 340px at 100% 0%,rgba(40,85,217,.55),transparent 70%);pointer-events:none}
+.plan.pro>*{position:relative}
+.plan.pro h3{color:#B8CBFF}
+.plan.pro .cost,.plan.pro .where,.plan.pro .cost span{color:var(--on-dark-2)}
+.plan.pro .cost b{color:#fff}
+.plan.pro ul{border-top-color:var(--dark-rule)}
+.plan.pro li.yes{color:#fff}
+.plan.pro li.yes::before{background:var(--cobalt) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.2l2.2 2.2 4.8-4.8' fill='none' stroke='white' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/19px no-repeat}
+.btn-light{align-self:stretch;background:#fff;border-color:#fff;color:var(--ink)}
+.btn-light:hover{background:#E4EBFB;border-color:#E4EBFB}
+.compare-note{margin-top:18px;font-size:15px;color:var(--quiet)}
+@media (max-width:560px){.plan{padding:26px}}
+
+/* Questions: the heading held to one side, answers that open in place. */
+.faq .wrap{display:grid;gap:36px 80px}
+@media (min-width:900px){.faq .wrap{grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr)}.faq-side{position:sticky;top:32px;align-self:start}}
+.faq-side p{margin-top:16px;font-size:17px;color:var(--quiet);max-width:22em}
+.faq-list{border-top:1px solid var(--ink)}
+.faq details{border-bottom:1px solid var(--rule)}
+.faq summary{position:relative;display:block;padding:24px 48px 24px 0;font-size:19px;line-height:1.35;font-weight:600;letter-spacing:-.01em;color:var(--head);cursor:pointer;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before,.faq summary::after{content:"";position:absolute;right:6px;top:50%;width:16px;height:2px;margin-top:-1px;border-radius:2px;background:var(--cobalt);transition:transform .2s}
+.faq summary::after{transform:rotate(90deg)}
+.faq details[open] summary::after{transform:rotate(0)}
+.faq summary:hover{color:var(--cobalt)}
+.faq details p{padding:0 48px 26px 0;font-size:17px;line-height:1.6;color:var(--quiet);max-width:40em}
+
+/* The founding offer, dark */
+.offer .wrap{display:grid;gap:56px;align-items:center}
+@media (min-width:920px){.offer .wrap{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)}}
+.offer .join{margin-top:30px}
+.price{background:#fff;color:var(--ink);border-radius:18px;padding:32px;box-shadow:0 50px 100px -40px rgba(0,0,0,.65),0 0 80px -30px rgba(40,85,217,.6)}
+.price .tag{font-size:15px;font-weight:600;color:var(--cobalt)}
+.price .amount{margin-top:8px;font-size:52px;line-height:1;font-weight:700;letter-spacing:-.045em;color:var(--head)}
+.price .amount small{font-size:18px;font-weight:500;letter-spacing:0;color:var(--quiet)}
+.price .regular{margin-top:10px;color:var(--quiet)}
+.terms{margin-top:24px;padding:20px 0 0;border-top:1px solid var(--rule);list-style:none;display:grid;gap:12px}
+.terms li{position:relative;padding-left:28px}
+.terms li::before{content:"";position:absolute;left:0;top:4px;width:18px;height:18px;border-radius:50%;background:var(--cobalt) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.2l2.2 2.2 4.8-4.8' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/18px no-repeat}
+
+footer{border-top:1px solid var(--rule);padding:28px 0 40px;font-size:15px;color:var(--quiet)}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 24px}
+
+@media (max-width:640px){
+  .logo{width:186px}
+  .bar nav a.free{display:none}
+  .hero{padding:44px 0 72px}
+  section{padding:68px 0}
+  .join .btn{flex:1 1 100%}
+  .price{padding:24px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .btn,.blk{transition:none}
+  .blk.on{animation:none}.blk.pre{opacity:1}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <a class="logo" href="/"><img src="/media/brand/pro-logo-white.svg" width="1200" height="300" alt="Daymark Weekly Planner Pro"></a>
+    <nav aria-label="Main">
+      <a class="free" href="/app/">Open the free planner</a>
+      <a class="signin" href="https://pro.daymarkweekly.app/">Sign in</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="hero dark grid">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow"><b>Early access</b> Founding price $29 a year</p>
+        <h1>Your week on your phone too, with nothing to back up.</h1>
+        <p class="lead"><strong>Daymark Weekly Planner Pro</strong> is the planner you already know, saved to your account. Plan on Sunday at your desk, move a block from your phone on Tuesday.</p>
+        <form class="join" data-source="upgrade" data-clarity-mask="true" novalidate>
+          <label for="email-top">Email address</label>
+          <div class="row">
+            <input id="email-top" name="email" type="email" autocomplete="email" required placeholder="you@example.com" aria-describedby="note-top">
+            <button class="btn" type="submit">Join the early-access list</button>
+          </div>
+          <div class="hp" aria-hidden="true"><label>Company <input name="company" tabindex="-1" autocomplete="off"></label></div>
+          <p class="note" id="note-top">Founding members pay $29 a year, for life, instead of $45. Nothing to pay now: we email you when Pro opens.</p>
+          <p class="status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+
+      <figure class="stage" id="stage">
+        <div role="img" aria-label="Animation: a sample week of time blocks drops into place on a laptop-sized planner. On a phone beside it, Tuesday's client call is moved from 2 PM to 3 PM, and the laptop's week shows the move straight away.">
+          <div class="board" aria-hidden="true">
+            <div class="days"><span>Mon<b>12</b></span><span>Tue<b>13</b></span><span>Wed<b>14</b></span><span>Thu<b>15</b></span><span>Fri<b>16</b></span></div>
+            <div class="hours"><span>8 AM</span><span>9 AM</span><span>10 AM</span><span>11 AM</span><span>12 PM</span><span>1 PM</span><span>2 PM</span><span>3 PM</span><span>4 PM</span></div>
+            <div class="cols" id="cols"><div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div></div>
+          </div>
+          <div class="phone" aria-hidden="true">
+            <div class="screen">
+              <div class="status">
+                <span>9:41</span>
+                <span class="icons">
+                  
+                  <svg width="15" height="11" viewBox="0 0 15 11"><path d="M7.5 2.2c2.1 0 4 .8 5.4 2.1l1.1-1.1A9.2 9.2 0 0 0 7.5.6 9.2 9.2 0 0 0 1 3.2l1.1 1.1A7.6 7.6 0 0 1 7.5 2.2Zm0 3.2c1.2 0 2.3.5 3.2 1.2l1.1-1.1a6.2 6.2 0 0 0-8.6 0l1.1 1.1c.9-.7 2-1.2 3.2-1.2Zm0 3.2c-.4 0-.8.2-1.1.5L7.5 10.2l1.1-1.1c-.3-.3-.7-.5-1.1-.5Z" fill="#213247"/></svg>
+                  <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" fill="none" stroke="#213247" opacity=".45"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#213247"/><rect x="22.8" y="4" width="1.7" height="4" rx=".8" fill="#213247" opacity=".45"/></svg>
+                </span>
+              </div>
+              <div class="appbar">
+                <strong>Tue 13<small>October, week 42</small></strong>
+                <span class="nav"><span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span><span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span></span>
+              </div>
+              <div class="dayview" id="dayview">
+                <span class="t" style="top:0">8 AM</span><span class="t" style="top:calc(var(--h) * 1)">9 AM</span><span class="t" style="top:calc(var(--h) * 2)">10 AM</span><span class="t" style="top:calc(var(--h) * 3)">11 AM</span><span class="t" style="top:calc(var(--h) * 4)">12 PM</span><span class="t" style="top:calc(var(--h) * 5)">1 PM</span><span class="t" style="top:calc(var(--h) * 6)">2 PM</span><span class="t" style="top:calc(var(--h) * 7)">3 PM</span><span class="t" style="top:calc(var(--h) * 8)">4 PM</span>
+              </div>
+              <div class="homebar"></div>
+            </div>
+            <img class="frame" src="/media/pro/phone-ink.webp" width="736" height="1605" alt="">
+          </div>
+        </div>
+        <figcaption>Sample week. Move a block on your phone and your laptop shows it straight away.</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <section class="adds" aria-labelledby="adds-title">
+    <div class="wrap">
+      <div class="adds-head">
+        <h2 id="adds-title">What Pro adds to the planner you know.</h2>
+        <p class="intro">Everything the free planner does still works: templates, copying a week forward, PDF and calendar export. Pro adds what needs an account.</p>
+      </div>
+      <div class="bento">
+        <article class="tile t-sync">
+          <div class="copy">
+            <h3>Every device, always current.</h3>
+            <p>Move a block on your laptop and your phone already shows it. No refresh, no export.</p>
+          </div>
+          <div class="v-sync-wrap" aria-hidden="true">
+            <div class="v-sync">
+              <div class="dev laptop">
+                <div class="scr"><div class="heads"><span></span><span><i>Mon</i><b>12</b></span><span><i>Tue</i><b>13</b></span><span><i>Wed</i><b>14</b></span></div><div class="grid"><div class="ruler"><span style="top:0em"><i>9 AM</i></span><span style="top:19em"><i>10 AM</i></span><span style="top:38em"><i>11 AM</i></span><span style="top:57em"><i>12 PM</i></span><span style="top:76em"><i>1 PM</i></span><span style="top:95em"><i>2 PM</i></span><span style="top:114em"><i>3 PM</i></span><span style="top:133em"><i>4 PM</i></span></div><div class="lane"><span class="sb deep" style="top:1em;height:45.5em"><b>Write proposal</b></span><span class="sb brk" style="top:58em;height:17em"><b>Lunch</b></span><span class="sb meet" style="top:77em;height:7.5em"></span><span class="sb learn" style="top:96em;height:17em"><b>Online course</b></span></div><div class="lane"><span class="sb deep" style="top:1em;height:45.5em"><b>Build prototype</b></span><span class="sb brk" style="top:58em;height:17em"><b>Lunch</b></span><span class="sb meet" style="top:77em;height:7.5em"></span><span class="sb meet ring" style="top:115em;height:17em"><b>Client call</b></span></div><div class="lane"><span class="sb deep" style="top:1em;height:45.5em"><b>Survey results</b></span><span class="sb brk" style="top:58em;height:17em"><b>Lunch</b></span><span class="sb meet" style="top:77em;height:7.5em"></span><span class="sb learn" style="top:96em;height:17em"><b>Read notes</b></span></div></div></div>
+                <img src="/media/pro/laptop-ink.webp" width="1532" height="834" alt="" loading="lazy">
+              </div>
+              <span class="tie"></span>
+              <div class="dev phone-s">
+                <div class="scr"><div class="pbar"></div><div class="pday"><b>Tue 13</b></div><div class="grid"><div class="ruler"><span style="top:0em"><i>9 AM</i></span><span style="top:19em"><i>10 AM</i></span><span style="top:38em"><i>11 AM</i></span><span style="top:57em"><i>12 PM</i></span><span style="top:76em"><i>1 PM</i></span><span style="top:95em"><i>2 PM</i></span><span style="top:114em"><i>3 PM</i></span><span style="top:133em"><i>4 PM</i></span></div><div class="lane"><span class="sb deep" style="top:1em;height:45.5em"><b>Build prototype</b></span><span class="sb brk" style="top:58em;height:17em"><b>Lunch</b></span><span class="sb meet" style="top:77em;height:7.5em"></span><span class="sb meet ring" style="top:115em;height:17em"><b>Client call</b></span></div></div></div>
+                <img src="/media/pro/phone-ink.webp" width="736" height="1605" alt="" loading="lazy">
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="tile t-backup">
+          <p class="v-toast" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><s>Backup saved as a .json file</s></p>
+          <h3>Nothing to back&nbsp;up.</h3>
+          <p>Your weeks are saved to your account, not to one browser that a cleared history can wipe.</p>
+        </article>
+
+        <article class="tile t-bring">
+          <div class="copy">
+            <h3>Bring your weeks with you.</h3>
+            <p>Open Pro with the free planner's Backup file. Export the same file to take your weeks back any time.</p>
+          </div>
+          <div class="v-bring" aria-hidden="true">
+            <div class="v-file"><span class="fold"></span><b>Backup file</b><i>.json</i></div>
+            <svg class="v-arrow" width="44" height="16" viewBox="0 0 44 16" fill="none"><path d="M1 8h40M35 2l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="v-week">
+              <span><i class="health" style="top:0;height:12%"></i><i class="deep" style="top:13%;height:30%"></i><i class="brk" style="top:46%;height:12%"></i><i class="learn" style="top:72%;height:12%"></i></span>
+              <span><i class="deep" style="top:13%;height:30%"></i><i class="brk" style="top:46%;height:12%"></i><i class="meet" style="top:72%;height:12%"></i></span>
+              <span><i class="health" style="top:0;height:12%"></i><i class="deep" style="top:13%;height:30%"></i><i class="brk" style="top:46%;height:12%"></i><i class="learn" style="top:72%;height:12%"></i></span>
+              <span><i class="deep" style="top:13%;height:30%"></i><i class="brk" style="top:46%;height:12%"></i><i class="meet" style="top:72%;height:12%"></i></span>
+              <span><i class="health" style="top:0;height:12%"></i><i class="deep" style="top:13%;height:30%"></i><i class="brk" style="top:46%;height:12%"></i><i class="admin" style="top:72%;height:12%"></i></span>
+            </div>
+          </div>
+        </article>
+
+        <article class="tile t-review">
+          <div class="copy">
+            <h3>See the week you planned next to the week you had.</h3>
+            <p>Pro's Review sets the hours you planned beside the hours you logged in Daymark Time Audit, which comes with Pro.</p>
+          </div>
+          <div class="v-review" aria-hidden="true">
+            <p class="r-title">Review</p>
+            <p class="r-cap">This week, complete: hours logged against hours planned.</p>
+            <ul>
+              <li><span class="dot" style="background:#4178b3"></span>Deep work<span class="track"><i style="width:80%;background:#4178b3"></i></span><em>10h of 12.5h</em></li>
+              <li><span class="dot" style="background:#ba714a"></span>Meetings<span class="track"><i style="width:100%;background:#ba714a"></i></span><em>5.5h of 4h</em></li>
+              <li><span class="dot" style="background:#7e61d0"></span>Learning<span class="track"><i style="width:50%;background:#7e61d0"></i></span><em>1.5h of 3h</em></li>
+              <li><span class="dot" style="background:#158661"></span>Health<span class="track"><i style="width:100%;background:#158661"></i></span><em>3h of 3h</em></li>
+            </ul>
+          </div>
+        </article>
+      </div>
+      <p class="sample-note">Illustrations use sample weeks.</p>
+    </div>
+  </section>
+
+  <section class="plans" aria-labelledby="plans-title">
+    <div class="wrap">
+      <h2 id="plans-title">Free or Pro.</h2>
+      <p class="intro">Keep the free planner as long as it suits you. Pro is for when your week needs to follow you.</p>
+      <div class="plan-grid">
+        <article class="plan">
+          <h3>Free planner</h3>
+          <p class="cost"><b>Free</b></p>
+          <p class="where">In this browser. No account.</p>
+          <ul>
+            <li class="yes">The weekly time-blocking planner</li>
+            <li class="yes">Templates, copy a week forward, PDF and calendar export</li>
+            <li class="no">Saved in one browser; back it up yourself</li>
+            <li class="no">A separate plan on each device</li>
+            <li class="no"><span class="sr-only">Not included: </span>Review and Daymark Time Audit</li>
+          </ul>
+          <a class="plan-link" href="/app/">Open the free planner</a>
+        </article>
+        <article class="plan pro">
+          <h3>Pro</h3>
+          <p class="cost"><b>$45</b> a year <span>or $5 a month</span></p>
+          <p class="where">Founding members: $29 a year, for life.</p>
+          <ul>
+            <li class="yes">Everything in the free planner</li>
+            <li class="yes">Saved to your account, nothing to back up</li>
+            <li class="yes">The same plan on every device, updated straight away</li>
+            <li class="yes">Bring your weeks from the free planner</li>
+            <li class="yes">Review, with Daymark Time Audit included</li>
+          </ul>
+          <a class="btn btn-light" href="#offer">Join the early-access list</a>
+        </article>
+      </div>
+      <p class="compare-note">The free planner stays free and open source. Prices include taxes.</p>
+    </div>
+  </section>
+
+  <section class="offer dark" id="offer" aria-labelledby="offer-title">
+    <div class="wrap">
+      <div>
+        <h2 id="offer-title">Join early, keep the founding price</h2>
+        <p class="intro">The early-access list hears first when Pro opens, with a founding code. Use it in the first 30 days for the founding price, which stays yours while you're on yearly billing. Founding places are limited.</p>
+        <form class="join" data-source="upgrade-offer" data-clarity-mask="true" novalidate>
+          <label for="email-offer">Email address</label>
+          <div class="row">
+            <input id="email-offer" name="email" type="email" autocomplete="email" required placeholder="you@example.com" aria-describedby="note-offer">
+            <button class="btn" type="submit">Join the early-access list</button>
+          </div>
+          <div class="hp" aria-hidden="true"><label>Company <input name="company" tabindex="-1" autocomplete="off"></label></div>
+          <p class="note" id="note-offer">Nothing to pay now. We only email you about Pro opening.</p>
+          <p class="status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+      <div class="price">
+        <p class="tag">Founding members</p>
+        <p class="amount">$29 <small>a year, for life</small></p>
+        <p class="regular">Regular price: $45 a year or $5 a month.</p>
+        <ul class="terms">
+          <li>Full refund within 30 days, no questions asked.</li>
+          <li>Pro renews until you cancel, and you can cancel any time.</li>
+          <li>Prices include taxes. Also €29 and £29 for founding members.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <div class="faq-side">
+        <h2 id="faq-title">Questions.</h2>
+        <p>Something else? Write to <a href="mailto:support@daymarkweekly.app">support@daymarkweekly.app</a>. </p>
+      </div>
+      <div class="faq-list">
+        <details><summary>I've quit planners before. Why would this one stick?</summary><p>Because changing the plan is how you use it, not a sign you failed. Drag a block when the meeting moves. Nothing is ever marked missed or overdue, and there are no streaks to break. Step away for a month and your weeks are where you left them; start again from last week in one click.</p></details>
+        <details><summary>I already use the free planner. Is Pro worth $45 a year?</summary><p>If you plan on one computer and back up now and then, the free planner may be all you need, and it stays free. Pro earns its keep when you want the week on your phone too, never want to think about backup files, or want to see the week you planned next to the week you had. It works out at less than $4 a month.</p></details>
+        <details><summary>Will it take an afternoon to set up?</summary><p>No. It's the planner you already know. Sign in, bring your weeks with the free planner's Backup file, and you're back on the week you left. There's nothing to configure first.</p></details>
+        <details><summary>Is there an app for my phone?</summary><p>Pro runs in your phone's browser and opens on the Day view. Add it to your home screen and it opens like an app, with nothing to install from an app store.</p></details>
+        <details><summary>Does it sync with Google Calendar?</summary><p>Not live. As in the free planner, you can send a week to Google Calendar, Apple Calendar or Outlook as a calendar file.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Daymark Weekly Planner</span>
+    <span><a href="/">Home</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></span>
+  </div>
+</footer>
+
+<script>
+// The demo: the sample week drops onto the board as on the home page; then Tuesday's client call
+// moves from 2 PM to 3 PM on the phone, and the board shows the move. It runs once; with reduced
+// motion it shows the finished week, call already moved.
+(function(){
+  // [day, start hour, hours, category, title]
+  var W=[
+    [0,8,1,'health','Morning run'],[2,8,1,'health','Morning run'],[4,8,1,'health','Morning run'],
+    [0,9,2.5,'deep','Write proposal'],[1,9,2.5,'deep','Build prototype'],[2,9,2.5,'deep','Survey results'],[3,9,2.5,'deep','Slides'],[4,9,2.5,'deep','Review and polish'],
+    [0,12,1,'brk','Lunch'],[1,12,1,'brk','Lunch'],[2,12,1,'brk','Lunch'],[3,12,1,'brk','Lunch'],[4,12,1,'brk','Lunch'],
+    [0,13,.5,'meet','Stand-up'],[1,13,.5,'meet','Stand-up'],[2,13,.5,'meet','Stand-up'],[3,13,.5,'meet','Stand-up'],[4,13,.5,'meet','Stand-up'],
+    [0,14,1,'learn','Online course'],[1,14,1,'meet','Client call'],[2,14,1,'learn','Read notes'],[3,14,1,'meet','1:1 check-in'],[4,14,1,'admin','Weekly review']
+  ];
+  var MOVED=19; // Tuesday's client call
+  function clock(h){var hh=Math.floor(h),m=Math.round((h-hh)*60);return (hh%12||12)+':'+(m<10?'0':'')+m+' '+(hh<12?'AM':'PM');}
+  function block(w){
+    var d=document.createElement('div');
+    d.className='blk '+w[3]+(w[2]<1?' short':'');
+    d.innerHTML='<b></b><i></i>';
+    d.firstChild.textContent=w[4];d.lastChild.textContent=clock(w[1]);
+    d.style.top='calc(var(--h) * '+(w[1]-8)+' + 1px)';d.style.height='calc(var(--h) * '+w[2]+' - 2px)';
+    return d;
+  }
+  var cols=document.querySelectorAll('#cols .col'),day=document.getElementById('dayview');
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var els=W.map(function(w){
+    var d=block(w);d.classList.add('pre');
+    d.style.setProperty('--dx',(Math.random()*220-110).toFixed(0)+'px');d.style.setProperty('--r',(Math.random()*36-18).toFixed(0)+'deg');
+    cols[w[0]].appendChild(d);return d;
+  });
+  var phoneCall=null;
+  W.forEach(function(w,i){if(w[0]===1){var d=block(w);day.appendChild(d);if(i===MOVED)phoneCall=d;}});
+  function move(el){el.style.top='calc(var(--h) * 7 + 1px)';el.lastChild.textContent=clock(15);}
+  if(reduce){els.forEach(function(e){e.classList.remove('pre')});move(els[MOVED]);move(phoneCall);return;}
+  function run(){
+    var order=els.map(function(e,i){return i}).sort(function(){return Math.random()-.5});
+    order.forEach(function(idx,n){setTimeout(function(){els[idx].classList.remove('pre');els[idx].classList.add('on');},250+n*80);});
+    var done=250+order.length*80+900;
+    setTimeout(function(){phoneCall.classList.add('moved');move(phoneCall);},done);
+    setTimeout(function(){phoneCall.classList.remove('moved');var b=els[MOVED];b.classList.remove('on');b.classList.add('moved');move(b);},done+900);
+    setTimeout(function(){els[MOVED].classList.remove('moved');},done+2600);
+  }
+  var stage=document.getElementById('stage'),started=false;
+  function start(){if(started)return;started=true;run();}
+  if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){if(es[0].isIntersecting){io.disconnect();start();}},{threshold:.3});io.observe(stage);}
+  else start();
+})();
+
+// The early-access forms. The production backend; a local copy can point at a dev one with ?api=.
+(function(){
+  var api = 'https://trustworthy-meerkat-717.convex.site';
+  var local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (local) api = new URLSearchParams(location.search).get('api') || '';
+  var SUPPORT = 'support@daymarkweekly.app';
+  var MESSAGES = {
+    joined: function(email){ return "You're on the list. We'll email " + email + " when Pro opens, with your founding code."; },
+    already: function(){ return "That address is already on the list. We'll email it when Pro opens."; },
+    invalid: function(){ return 'Enter an email address, such as you@example.com.'; },
+    busy: function(){ return 'A lot of people are joining right now. Try again in a minute.'; },
+    failed: function(){ return "Couldn't reach the list. Try again, or email " + SUPPORT + '.'; }
+  };
+  var EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  document.querySelectorAll('form.join').forEach(function(form){
+    var input = form.querySelector('input[name=email]');
+    var button = form.querySelector('button');
+    var status = form.querySelector('.status');
+    function show(kind, text){
+      status.className = 'status ' + (kind === 'joined' || kind === 'already' ? 'ok' : 'err');
+      status.textContent = text;
+      input.setAttribute('aria-invalid', kind === 'invalid' ? 'true' : 'false');
+    }
+    form.addEventListener('submit', function(event){
+      event.preventDefault();
+      var email = input.value.trim();
+      if (!EMAIL.test(email)) { show('invalid', MESSAGES.invalid()); input.focus(); return; }
+      button.disabled = true;
+      button.textContent = 'Joining…';
+      fetch(api + '/early-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, source: form.dataset.source, company: form.company.value })
+      }).then(function(response){ return response.json(); }).then(function(body){
+        var kind = MESSAGES[body.result] ? body.result : 'failed';
+        show(kind, MESSAGES[kind](email));
+        if (kind === 'joined' || kind === 'already') {
+          form.querySelector('.row').hidden = true;
+          if (window.gtag) window.gtag('event', 'early_access_join', { source: form.dataset.source });
+        }
+      }).catch(function(){ show('failed', MESSAGES.failed()); }).then(function(){
+        button.disabled = false;
+        button.textContent = 'Join the early-access list';
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
