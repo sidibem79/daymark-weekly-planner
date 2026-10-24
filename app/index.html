@@ -1062,8 +1062,8 @@ $('toast-undo').addEventListener('click',()=>{if($('toast-undo').dataset.action=
 $('toast-close').addEventListener('click',hideToast);
 
 /* ---------- Back closes what's open ---------- */
-// Menus, quick add, the editor's short lists, the dialogs and the phone's side menu are overlays. While any is open the page behind
-// it doesn't scroll, and the page holds one extra history entry, so a phone's Back button (or the browser's) closes the topmost
+// Menus, quick add, the editor's short lists, the dialogs, the phone's side menu and selecting on a phone are overlays. While any but selecting is open the
+// page behind it doesn't scroll, and the page holds one extra history entry, so a phone's Back button (or the browser's) closes the topmost
 // overlay rather than leaving the planner. One that closes any other way (Done, Cancel, Escape, a tap outside, a menu item) gives the
 // entry back with history.back(), and the popstate that follows closes nothing. Overlays opened one from another (a menu's Edit, then
 // the editor) share the entry: it is settled once the event that swapped them is over.
@@ -1076,7 +1076,7 @@ let backTimer=0;
 function overlayOpened(name,close){if(!overlays.some(o=>o.name===name))overlays.push({name,close});settleOverlays();}
 function overlayClosed(name){const i=overlays.findIndex(o=>o.name===name);if(i<0)return;overlays.splice(i,1);settleOverlays();}
 function settleOverlays(){
-  lockScroll(overlays.length>0);
+  lockScroll(overlays.some(o=>o.name!=='select')); // selecting on a phone takes Back, but the calendar still scrolls
   if(backTimer)return;
   backTimer=setTimeout(()=>{
     backTimer=0;
@@ -1411,14 +1411,14 @@ function selectedBlocks(){return inTimeOrder(blocks.filter(b=>selected.has(b.id)
 /* Whether an action on block id (or on none in particular, when null) is for the whole selection: several selected and it is one of them, or selecting on a phone. */
 function actsOnSelection(id){if(!selected.size||(id!==null&&!selected.has(id)))return false;return selected.size>=2||selectMode;}
 function clearsSelection(){return selected.size>=2||selectMode;}
-function clearSelection(){selected.clear();anchorId=null;selectMode=false;}
+function clearSelection(){selected.clear();anchorId=null;selectMode=false;overlayClosed('select');}
 function pruneSelection(){const drawn=new Set(drawnBlocks().map(b=>b.id));selected=new Set([...selected].filter(id=>drawn.has(id)));if(anchorId!==null&&!drawn.has(anchorId))anchorId=null;}
 function showSelection(){document.querySelectorAll('.event[data-id]').forEach(el=>{const sel=selected.has(el.dataset.id);el.classList.toggle('selected',sel);const b=blocks.find(x=>x.id===el.dataset.id);if(b&&!el.classList.contains('orig'))el.setAttribute('aria-label',blockLabel(b,sel));});renderSelectBar();}
 function selectOnly(id){selected=new Set([id]);anchorId=id;showSelection();}
 function rangeBetween(list,from,to){const order=inTimeOrder(list).map(b=>b.id);const j=order.indexOf(to);if(j<0)return [];const i=from===null?-1:order.indexOf(from);if(i<0)return [to];return order.slice(Math.min(i,j),Math.max(i,j)+1);}
 function clickSelect(id,range){if(range)rangeBetween(drawnBlocks(),anchorId,id).forEach(x=>selected.add(x));else if(selected.has(id))selected.delete(id);else selected.add(id);anchorId=id;showSelection();}
-function tapSelect(id){if(selected.has(id))selected.delete(id);else selected.add(id);anchorId=id;if(!selected.size)selectMode=false;showSelection();}
-function startSelecting(id){if(!selectMode){selectMode=true;selected=new Set();}selected.add(id);anchorId=id;showSelection();}
+function tapSelect(id){if(selected.has(id))selected.delete(id);else selected.add(id);anchorId=id;if(!selected.size){selectMode=false;overlayClosed('select');}showSelection();}
+function startSelecting(id){if(!selectMode){selectMode=true;selected=new Set();overlayOpened('select',endSelecting);}selected.add(id);anchorId=id;showSelection();}
 function endSelecting(){clearSelection();showSelection();}
 /* The nearest shift to the one asked that keeps every block inside the shown week and inside its own day, so a group keeps its shape. */
 function clampShift(list,sh){if(!list.length)return {days:0,minutes:0};const ds=list.map(b=>dayIndex(b.date));const lowD=-Math.min(...ds),highD=6-Math.max(...ds);const lowM=-Math.min(...list.map(b=>b.start)),highM=Math.min(...list.map(b=>DAY_MIN-b.start-b.duration));return {days:lowD>highD?0:clamp(sh.days,lowD,highD),minutes:lowM>highM?0:clamp(sh.minutes,lowM,highM)};}
