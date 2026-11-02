@@ -420,7 +420,7 @@ select.input{font-family:var(--mono);font-size:14px;padding:0 12px}
 .ctx .item kbd{margin-left:auto;padding-left:16px;font-family:var(--mono);font-size:11px;color:var(--faint)}
 .ctx hr{border:0;height:1px;margin:4px 6px;background:var(--line2)}
 .ctx-label{padding:6px 10px 2px;font-size:11px;font-weight:600;color:var(--faint)}
-.ctx-cats{display:flex;flex-wrap:wrap;gap:4px;padding:4px 6px}
+.ctx-cats{display:grid;grid-template-columns:repeat(6,30px);justify-content:space-between;gap:4px;padding:4px 6px}
 .ctx-cat{width:30px;height:30px;padding:0;border:0;border-radius:8px;background:transparent;display:grid;place-items:center}
 .ctx-cat span{width:16px;height:16px;border-radius:5px;background:var(--c)}
 .ctx-cat:hover{background:var(--hover)}
@@ -838,6 +838,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
             <dt>Drag empty time</dt><dd>Draw a block's start and end</dd>
             <dt><kbd class="k">Alt</kbd> + drag</dt><dd>Duplicate a block</dd>
             <dt><kbd class="k">Ctrl</kbd>+<kbd class="k">C</kbd> <kbd class="k">X</kbd> <kbd class="k">V</kbd></dt><dd>Copy, cut, paste where you point</dd>
+            <dt><kbd class="k">Ctrl</kbd>+<kbd class="k">D</kbd></dt><dd>Duplicate a block straight under it</dd>
             <dt><kbd class="k">X</kbd></dt><dd>Mark the focused block, or the one you point at, as done</dd>
             <dt>Right-click</dt><dd>More actions, change category</dd>
             <dt><kbd class="k">Ctrl</kbd>+click, <kbd class="k">Shift</kbd>+click</dt><dd>Select several blocks, or a run of them</dd>
@@ -1471,6 +1472,10 @@ function focusEvent(id){const el=document.querySelector(`.event[data-id="${CSS.e
 function focusedEventId(){const a=document.activeElement;const el=a&&a.closest?a.closest('.event'):null;return el?el.dataset.id:null;}
 function toggleDone(id,refocus){const b=blocks.find(x=>x.id===id);if(!b)return;const snap=snapshot();b.done=!b.done;save();render();if(refocus)focusEvent(id);showToast(b.done?`“${b.title}” marked done`:`“${b.title}” marked not done`,{undo:snap});}
 function duplicateNextDay(id){const b=blocks.find(x=>x.id===id);if(!b)return;const snap=snapshot();const nb={...b,id:uid(),done:false,date:offsetKey(b.date,1)};blocks.push(nb);save();render();showToast('Copied to '+labelDate(fromKey(nb.date)),{undo:snap});}
+/* Duplicate: copies of the blocks straight under them, not done, moved down by their own length (earliest start to latest end) on their own days. None when a copy would run past midnight. */
+function belowShift(list){const top=Math.min(...list.map(b=>b.start));const m=Math.max(...list.map(b=>b.start+b.duration))-top;return list.some(b=>b.start+b.duration+m>DAY_MIN)?0:m;}
+const NO_ROOM_BELOW="No room under it before midnight";
+function duplicateBelow(id){const b=blocks.find(x=>x.id===id);if(!b)return;const m=belowShift([b]);if(!m){showToast(NO_ROOM_BELOW);return;}const snap=snapshot();blocks.push({...b,id:uid(),done:false,start:b.start+m});save();render();showToast(`Duplicated “${b.title}”`,{undo:snap});}
 function setCategory(id,cat){const b=blocks.find(x=>x.id===id);if(!b||b.cat===cat)return;const snap=snapshot();b.cat=cat;hiddenCats.delete(cat);save();render();showToast(`“${b.title}” moved to ${getCategory(cat).name}`,{undo:snap});}
 function clipOf(b){return {title:b.title,desc:b.desc,start:b.start,duration:b.duration,cat:b.cat};}
 function copyBlock(id){const b=blocks.find(x=>x.id===id);if(!b)return;clip=[clipOf(b)];showToast(`Copied “${b.title}”. Point at a time and press Ctrl+V.`);}
@@ -1519,6 +1524,7 @@ function duplicateSelectionNextDay(){const list=selectedBlocks();if(!list.length
 function setCategorySelection(cat){const moving=selectedBlocks().filter(b=>b.cat!==cat);if(!moving.length)return;changeSelection(()=>{moving.forEach(b=>{b.cat=cat;});hiddenCats.delete(cat);},`${count(moving.length)} moved to ${getCategory(cat).name}`);}
 function moveSelectionToDay(day){const date=key(dateFor(day));const moving=selectedBlocks().filter(b=>b.date!==date);if(!moving.length)return;changeSelection(()=>moving.forEach(b=>{b.date=date;}),`Moved ${count(moving.length)} to ${WDL[day]}`);}
 function copySelection(){const list=selectedBlocks();if(!list.length)return;clip=clipsOf(list);showToast(`Copied ${count(list.length)}. Point at a time and press Ctrl+V.`);}
+function duplicateSelectionBelow(){const list=selectedBlocks();if(!list.length)return;const m=belowShift(list);if(!m){showToast(NO_ROOM_BELOW);return;}changeSelection(()=>list.forEach(b=>blocks.push({...b,id:uid(),done:false,start:b.start+m})),`Duplicated ${count(list.length)}`);}
 function cutSelection(){const list=selectedBlocks();if(!list.length)return;const ids=new Set(list.map(b=>b.id));clip=clipsOf(list);changeSelection(()=>{blocks=blocks.filter(b=>!ids.has(b.id));clearSelection();},`Cut ${count(list.length)}. Point at a time and press Ctrl+V.`);}
 /* Moves (or with copy, copies) every block by the same shift; false when the shift moves nothing. */
 function shiftBlocks(list,sh,copy){if(!list.length||(!sh.days&&!sh.minutes))return false;changeSelection(()=>list.forEach(b=>{const to={date:offsetKey(b.date,sh.days),start:b.start+sh.minutes};if(copy)blocks.push({...b,...to,id:uid(),done:false});else Object.assign(b,to);}),`${copy?'Copied':'Moved'} ${count(list.length)}`);return true;}
@@ -1550,6 +1556,7 @@ function selectionMenu(x,y){
   const list=selectedBlocks();if(!list.length)return;const cats=new Set(list.map(b=>b.cat));
   openCtx(x,y,[
     {label:list.every(b=>b.done)?'Mark as not done':'Mark as done',kbd:'X',action:toggleDoneSelection},
+    {label:'Duplicate',kbd:'Ctrl+D',action:duplicateSelectionBelow},
     {label:'Copy to next day',action:duplicateSelectionNextDay},
     {label:'Copy',kbd:'Ctrl+C',action:copySelection},
     {label:'Cut',kbd:'Ctrl+X',action:cutSelection},
@@ -1666,6 +1673,7 @@ function blockMenu(b,x,y){
   openCtx(x,y,[
     {label:'Edit',kbd:'Enter',action:()=>openEditor(b.id)},
     {label:b.done?'Mark as not done':'Mark as done',kbd:'X',action:()=>toggleDone(b.id)},
+    {label:'Duplicate',kbd:'Ctrl+D',action:()=>duplicateBelow(b.id)},
     {label:'Copy to next day',action:()=>duplicateNextDay(b.id)},
     {label:'Copy',kbd:'Ctrl+C',action:()=>copyBlock(b.id)},
     {label:'Cut',kbd:'Ctrl+X',action:()=>cutBlock(b.id)},
@@ -2314,6 +2322,9 @@ document.addEventListener('keydown',e=>{
     if((ck==='z'&&e.shiftKey)||ck==='y'){e.preventDefault();redo();return;}
     if(ck==='c'&&many&&!String(window.getSelection()||'')){e.preventDefault();copySelection();return;}
     if(ck==='x'&&many){e.preventDefault();cutSelection();return;}
+    if(ck==='d'&&e.repeat&&(many||target)){e.preventDefault();return;}
+    if(ck==='d'&&many){e.preventDefault();duplicateSelectionBelow();return;}
+    if(ck==='d'&&target){e.preventDefault();duplicateBelow(target);return;}
     if(ck==='c'&&target&&!String(window.getSelection()||'')){e.preventDefault();copyBlock(target);return;}
     if(ck==='x'&&target){e.preventDefault();cutBlock(target);return;}
     if(ck==='v'&&clip){e.preventDefault();pasteBlock(hoverSlot);return;}
