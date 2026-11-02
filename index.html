@@ -2322,6 +2322,7 @@ document.addEventListener('keydown',e=>{
     if((ck==='z'&&e.shiftKey)||ck==='y'){e.preventDefault();redo();return;}
     if(ck==='c'&&many&&!String(window.getSelection()||'')){e.preventDefault();copySelection();return;}
     if(ck==='x'&&many){e.preventDefault();cutSelection();return;}
+    if(ck==='d'&&e.repeat&&(many||target)){e.preventDefault();return;}
     if(ck==='d'&&many){e.preventDefault();duplicateSelectionBelow();return;}
     if(ck==='d'&&target){e.preventDefault();duplicateBelow(target);return;}
     if(ck==='c'&&target&&!String(window.getSelection()||'')){e.preventDefault();copyBlock(target);return;}
